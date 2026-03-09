@@ -87,7 +87,7 @@ body {
 
 /* JOKER AREA */
 #joker-area { background:rgba(0,0,0,0.2); padding:10px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #2a2a4a; min-height:86px; flex-shrink:0; overflow:visible; }
-#joker-area .jlbl { color:#887733; font-size:11px; white-space:nowrap; width:52px; min-width:52px; flex-shrink:0; }
+#joker-area .jlbl { color:#887733; font-size:11px; white-space:nowrap; flex-shrink:0; padding-right:4px; }
 #joker-slots { display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:2px; min-width:0; }
 .joker-card {
   border:2px solid var(--jcol,#ffd700); border-radius:9px;
@@ -403,7 +403,7 @@ body {
     <div id="joker-slots"></div>
   </div>
   <div id="handlv-area" style="display:none;background:rgba(0,0,0,0.15);padding:5px 16px;border-bottom:1px solid #1e1e3a;min-height:40px;overflow-x:auto;white-space:nowrap;align-items:center;scrollbar-width:none;">
-    <span id="handlv-lbl" style="color:#4488aa;font-size:11px;width:52px;min-width:52px;flex-shrink:0;">🪐 升级：</span>
+    <span id="handlv-lbl" style="color:#4488aa;font-size:11px;white-space:nowrap;flex-shrink:0;padding-right:4px;position:sticky;left:0;background:rgba(0,0,0,0.15);z-index:1;">🪐 升级：</span>
     <span id="handlv-slots"></span>
   </div>
   <!-- PLAY ZONE: shows during scoring animation -->
@@ -1226,7 +1226,7 @@ function showHandLvTooltip(e, name, chips, mult, lv){
   document.getElementById('ht-name').textContent = name;
   document.getElementById('ht-chips').textContent = chips;
   document.getElementById('ht-mult').textContent = mult;
-  document.getElementById('ht-lv').textContent = '等级 ' + lv;
+  document.getElementById('ht-lv').textContent = (CURR_LANG==='en'?'Level ':'等级 ') + lv;
   tip.style.display = 'block';
   // Position near click, keep on screen
   let x = e.clientX + 12, y = e.clientY - 20;
@@ -1252,7 +1252,7 @@ function renderJokers(){
       const el=document.createElement('div');
       el.className='joker-card pop-in';
       el.style.setProperty('--jcol', def.col||'#ffd700');
-      el.innerHTML=`<div class="j-face">${def.sym}</div><div class="j-name">${def.name}</div>`;
+      el.innerHTML=`<div class="j-face">${def.sym}</div><div class="j-name">${tDef(def,'name')}</div>`;
       el.addEventListener('click',()=>openJokerDetail(def, i));
       c.appendChild(el);
     } else {
@@ -1643,6 +1643,7 @@ function openPlanetConfirm(item) {
   document.getElementById('pc-header').textContent = t('pcHeader');
   document.getElementById('pc-cur-label').textContent = t('pcCurLabel');
   document.getElementById('pc-new-label').textContent = t('pcNewLabel');
+  document.getElementById('pc-cancel').textContent = t('scCancel');
   document.getElementById('pc-planet').textContent = item.emoji+' '+tDef(item,'name');
   document.getElementById('pc-hand').textContent = t('pcHandLabel')+tDef(ht,'name');
   const chips=t('sfxChips'), mult=t('sfxMult');
