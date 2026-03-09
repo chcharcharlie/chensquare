@@ -1559,9 +1559,11 @@ function renderShopItems(){
     const disabled=item.sold||isOwned||noMoney||full;
     const el=document.createElement('div');
     el.className='shop-item'+(item.sold?' sold':disabled?' cant-afford':'');
-    const statusTxt=item.sold?t('sold'):isOwned?t('owned'):full?t('slotFull'):'$'+item.cost;
+    const statusTxt=item.sold?t('sold'):isOwned?t('owned'):'$'+item.cost;
     const eternalBadge=item.eternal?`<span style="font-size:10px;color:#cc88ff;margin-left:4px;">🔒 ${CURR_LANG==='en'?'Eternal':'永恒'}</span>`:'';
-    el.innerHTML=`<span class="badge badge-j">${t('badgeJ')}</span><div class="iname">${tDef(item,'name')}${eternalBadge}</div><div class="idesc">${tDef(item,'desc')}</div><div class="icost">${statusTxt}</div>`;
+    const fullBadge=(!item.sold&&!isOwned&&full)?`<span style="position:absolute;bottom:4px;right:6px;font-size:9px;color:#ff8866;opacity:0.9;">${t('slotFull')}</span>`:'';
+    el.style.position='relative';
+    el.innerHTML=`<span class="badge badge-j">${t('badgeJ')}</span><div class="iname">${tDef(item,'name')}${eternalBadge}</div><div class="idesc">${tDef(item,'desc')}</div><div class="icost">${statusTxt}</div>${fullBadge}`;
     if(!disabled) el.addEventListener('click',()=>buyJoker(item));
     jc.appendChild(el);
   }
@@ -1604,22 +1606,26 @@ function renderShopItems(){
   if(sellSec) sellSec.style.display='';
   const sh4=document.getElementById('shop-h4'); if(sh4) sh4.textContent=t('sellJokerSec');
   const sc2=document.getElementById('shop-sell'); sc2.innerHTML='';
-  const sellableJokers=G.jokers.map((jj,i)=>({jj,i})).filter(({jj})=>!jj.eternal);
-  if(sellableJokers.length===0){
+  const allJokersForSell=G.jokers.map((jj,i)=>({jj,i}));
+  if(allJokersForSell.length===0){
     const el=document.createElement('div');
     el.className='shop-item sold';
     el.innerHTML=`<div class="iname" style="color:#888">${CURR_LANG==='en'?'No jokers to sell':'暂无小丑牌可卖'}</div>`;
     sc2.appendChild(el);
   } else {
-    for(const {jj,i} of sellableJokers){
+    for(const {jj,i} of allJokersForSell){
       const def=JOKER_DEFS.find(d=>d.id===jj.id);
       if(!def) continue;
       const sv=Math.max(1,Math.ceil(def.cost/2));
+      const isEt=!!jj.eternal;
       const el=document.createElement('div');
-      el.className='shop-item';
-      el.style.borderColor='#8b4513';
-      el.innerHTML=`<span class="badge" style="background:#8b4513;color:#ffd">💰 ${CURR_LANG==='en'?'Sell':'售出'}</span><div class="iname">${tDef(def,'name')}</div><div class="idesc">${tDef(def,'desc')}</div><div class="icost" style="color:#ffd700">+$${sv}</div>`;
-      el.addEventListener('click',()=>sellJoker(i));
+      el.className='shop-item'+(isEt?' cant-afford':'');
+      el.style.borderColor=isEt?'#553355':'#8b4513';
+      const badge=isEt
+        ?`<span class="badge" style="background:#553355;color:#cc88ff">🔒 ${CURR_LANG==='en'?'Eternal':'永恒'}</span>`
+        :`<span class="badge" style="background:#8b4513;color:#ffd">💰 ${CURR_LANG==='en'?'Sell':'售出'}</span>`;
+      el.innerHTML=`${badge}<div class="iname">${tDef(def,'name')}</div><div class="idesc">${tDef(def,'desc')}</div><div class="icost" style="color:${isEt?'#887799':'#ffd700'}">+$${sv}</div>`;
+      if(!isEt) el.addEventListener('click',()=>sellJoker(i));
       sc2.appendChild(el);
     }
   }
