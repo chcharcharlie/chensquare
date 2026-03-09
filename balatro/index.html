@@ -1014,15 +1014,14 @@ function evalHand(cards){
         break;
       }
     }
-    // Shortcut: allow gaps of 1 (span of 8 for 5 cards, max 1 gap)
+    // Shortcut: each adjacent pair may skip at most 1 rank (diff ≤ 2), span ≤ 8
     if(!isStraight&&hasShortcut){
       for(let i=0;i<=uniq.length-5;i++){
         const sl=uniq.slice(i,i+5);
-        // span ≤ 8 and at most one gap of 2 (all other consecutive or gap=1)
         if(sl[4]-sl[0]<=8){
-          let gaps=0;
-          for(let k=1;k<sl.length;k++) if(sl[k]-sl[k-1]>1) gaps++;
-          if(gaps<=1){
+          let valid=true;
+          for(let k=1;k<sl.length;k++) if(sl[k]-sl[k-1]>2){valid=false;break;}
+          if(valid){
             isStraight=true;
             const ss=new Set(sl);
             stCards=sorted.filter(c=>ss.has(c.ro));
@@ -1118,7 +1117,8 @@ const G = {
 // =============================================
 // Helper: Blueprint copies right neighbor; Brainstorm copies leftmost joker.
 // For perCard jokers, sums up each card's contribution and returns total ac/am/xm.
-function _applyJokerCopy(h, g, j, dir){
+function _applyJokerCopy(h, g, j, dir, depth=0){
+  if(depth>3) return {}; // hard recursion cap
   const idx=g.jokers.indexOf(j);
   let target;
   if(dir==='right'){
@@ -1131,8 +1131,9 @@ function _applyJokerCopy(h, g, j, dir){
   }
   const tDef=JOKER_DEFS.find(d=>d.id===target.id);
   if(!tDef||tDef.retrigger) return {};
-  // Can't copy another copy joker (avoid infinite recursion)
-  if(tDef.id==='J31'||tDef.id==='J39') return {};
+  // If target is also a copy joker, resolve through it (Brainstorm→Blueprint chain)
+  if(tDef.id==='J31') return _applyJokerCopy(h,g,target,'right',depth+1);
+  if(tDef.id==='J39') return _applyJokerCopy(h,g,target,'left',depth+1);
   if(tDef.perCard){
     // Sum perCard effects over all scored cards
     let ac=0,am=0,xm=1;
