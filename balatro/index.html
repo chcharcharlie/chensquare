@@ -1150,6 +1150,31 @@ function _applyJokerCopy(h, g, j, dir, depth=0){
   return tDef.apply?tDef.apply(h,g,target):{};
 }
 
+// Resolve what a copy joker (Blueprint/Brainstorm) ultimately points to.
+// Returns the target JOKER_DEF (could be a normal joker), or null if unresolvable.
+function resolveCopyTargetDef(j, g, depth=0){
+  if(depth>3) return null;
+  const def=JOKER_DEFS.find(d=>d.id===j.id);
+  if(!def) return null;
+  let target;
+  const idx=g.jokers.indexOf(j);
+  if(def.id==='J31'){ // Blueprint: copy right
+    if(idx<0||idx>=g.jokers.length-1) return null;
+    target=g.jokers[idx+1];
+  } else if(def.id==='J39'){ // Brainstorm: copy leftmost
+    if(idx<=0) return null;
+    target=g.jokers[0];
+    if(target===j) return null;
+  } else {
+    return def; // not a copy joker
+  }
+  const tDef=JOKER_DEFS.find(d=>d.id===target.id);
+  if(!tDef||tDef.retrigger) return null;
+  // Recursively resolve if target is also a copy joker
+  if(tDef.id==='J31'||tDef.id==='J39') return resolveCopyTargetDef(target,g,depth+1);
+  return tDef;
+}
+
 function calcScore(hr, selCards){
   const base=G.getBase(hr.type);
   let chips=base.bc, mult=base.bm;
@@ -1168,6 +1193,8 @@ function calcScore(hr, selCards){
   }
 
   // Step 2: score each card (with retriggering) + per-card joker effects
+  // Copy jokers (Blueprint/Brainstorm) that resolve to a perCard joker also run here,
+  // so they correctly benefit from retriggers (e.g. Hanging Chad).
   for(let ci=0;ci<selCards.length;ci++){
     const card=selCards[ci];
     const triggers=1+(retrigMap.get(card)||0);
@@ -1180,23 +1207,40 @@ function calcScore(hr, selCards){
         log.push({t:`${card.rank}${card.suit}${suf}`,kind:'chips',v:card.chips,sfx:'筹码',cardRef:card,retrig:t>0});
         chips+=card.chips;
       }
-      // per-card joker effects also retrigger
       for(const j of G.jokers){
         const def=JOKER_DEFS.find(d=>d.id===j.id);
-        if(!def?.perCard) continue;
-        const r=def.perCard(card,hr,G);
-        if(r.ac){chips+=r.ac; log.push({t:def.name+suf,kind:'chips',v:r.ac,sfx:'筹码',jokerRef:def.id,retrig:t>0});}
-        if(r.am){mult+=r.am;  log.push({t:def.name+suf,kind:'mult',v:r.am,sfx:'倍率',jokerRef:def.id,retrig:t>0});}
-        if(r.xm){mult=+(mult*r.xm).toFixed(1); log.push({t:def.name+suf,kind:'xmult',v:r.xm,sfx:'×倍率',jokerRef:def.id,retrig:t>0});}
+        // Direct perCard jokers
+        if(def?.perCard){
+          const r=def.perCard(card,hr,G);
+          if(r.ac){chips+=r.ac; log.push({t:def.name+suf,kind:'chips',v:r.ac,sfx:'筹码',jokerRef:def.id,retrig:t>0});}
+          if(r.am){mult+=r.am;  log.push({t:def.name+suf,kind:'mult',v:r.am,sfx:'倍率',jokerRef:def.id,retrig:t>0});}
+          if(r.xm){mult=+(mult*r.xm).toFixed(1); log.push({t:def.name+suf,kind:'xmult',v:r.xm,sfx:'×倍率',jokerRef:def.id,retrig:t>0});}
+        }
+        // Copy jokers whose target is a perCard joker — run in Step 2 to get retrigger
+        if(def?.id==='J31'||def?.id==='J39'){
+          const tDef=resolveCopyTargetDef(j,G);
+          if(tDef?.perCard){
+            const r=tDef.perCard(card,hr,G);
+            if(r.ac){chips+=r.ac; log.push({t:def.name+suf,kind:'chips',v:r.ac,sfx:'筹码',jokerRef:def.id,retrig:t>0});}
+            if(r.am){mult+=r.am;  log.push({t:def.name+suf,kind:'mult',v:r.am,sfx:'倍率',jokerRef:def.id,retrig:t>0});}
+            if(r.xm){mult=+(mult*r.xm).toFixed(1); log.push({t:def.name+suf,kind:'xmult',v:r.xm,sfx:'×倍率',jokerRef:def.id,retrig:t>0});}
+          }
+        }
       }
     }
   }
 
   // Step 3: hand-level jokers (no retrigger)
+  // Skip copy jokers that resolved to perCard (already handled in Step 2)
   const xMults=[];
   for(const j of G.jokers){
     const def=JOKER_DEFS.find(d=>d.id===j.id);
     if(!def||def.retrigger||def.perCard) continue;
+    // Copy joker targeting perCard → already counted in Step 2, skip here
+    if(def.id==='J31'||def.id==='J39'){
+      const tDef=resolveCopyTargetDef(j,G);
+      if(tDef?.perCard) continue;
+    }
     const r=def.apply(h,G,j);
     if(r.ac){chips+=r.ac; log.push({t:def.name,kind:'chips',v:r.ac,sfx:'筹码',jokerRef:def.id});}
     if(r.am){mult+=r.am;  log.push({t:def.name,kind:'mult',v:r.am,sfx:'倍率',jokerRef:def.id});}
