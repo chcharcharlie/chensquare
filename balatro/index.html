@@ -429,6 +429,7 @@ body {
         <div id="score-bar-txt">0 / 300</div>
       </div>
     </div>
+    <button class="btn" id="btn-lang" style="background:rgba(255,255,255,0.1);color:#aaaacc;padding:5px 8px;font-size:12px;border:1px solid #3a3a6a;min-width:36px;">EN</button>
     <button class="btn" id="btn-help" style="background:rgba(255,255,255,0.1);color:#aaaacc;padding:5px 10px;font-size:13px;border:1px solid #3a3a6a;">❓</button>
     <button class="btn" id="btn-newgame" style="background:rgba(255,80,80,0.15);color:#ff8888;padding:5px 10px;font-size:13px;border:1px solid #5a2a2a;" title="放弃当前游戏，重新开始">↺</button>
   </div>
@@ -651,9 +652,9 @@ body {
     <button class="btn btn-green" id="btn-next-ante" style="font-size:15px;padding:10px 24px;">下一关 →</button>
   </div>
   <div id="shop-body">
-    <div class="shop-sec"><h3>🃏 小丑牌</h3><div class="shop-items" id="shop-jokers"></div></div>
-    <div class="shop-sec"><h3>🪐 行星牌（升级牌型）</h3><div class="shop-items" id="shop-planets"></div></div>
-    <div class="shop-sec"><h3>🎫 凭证（永久升级）</h3><div class="shop-items" id="shop-vouchers"></div></div>
+    <div class="shop-sec"><h3 id="shop-h1">🃏 小丑牌</h3><div class="shop-items" id="shop-jokers"></div></div>
+    <div class="shop-sec"><h3 id="shop-h2">🪐 行星牌（升级牌型）</h3><div class="shop-items" id="shop-planets"></div></div>
+    <div class="shop-sec"><h3 id="shop-h3">🎫 凭证（永久升级）</h3><div class="shop-items" id="shop-vouchers"></div></div>
   </div>
 </div>
 
@@ -681,16 +682,70 @@ const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 const CHIP_VAL = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':10,'Q':10,'K':10,'A':11};
 const RANK_ORD = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14};
 
+// =============================================
+// i18n
+// =============================================
+let CURR_LANG = localStorage.getItem('balatro_lang') || 'zh';
+function t(k){ return (STRINGS[CURR_LANG]??STRINGS.zh)[k]??STRINGS.zh[k]??k; }
+function tDef(def,f){ return CURR_LANG==='en'&&def[f+'_en']?def[f+'_en']:def[f]; }
+function tBlind(i){ return CURR_LANG==='en'?['Small Blind','Big Blind','Boss Blind'][i]:BLIND_NAMES[i]; }
+const STRINGS = {
+  zh:{
+    play:'出牌',discard:'弃牌',leaveShop:'离开商店',restart:'重新开始',newGame:'新游戏',
+    continue:'继续',nextRound:'开始挑战',
+    labelHands:'手牌',labelDiscards:'弃牌',labelMoney:'金钱',
+    shopSec1:'🃏 小丑牌',shopSec2:'🪐 行星牌（升级牌型）',shopSec3:'🎫 凭证（永久升级）',
+    rerollBtn:'重置商品',
+    badgeJ:'小丑',badgeP:'行星',badgeV:'凭证',
+    sold:'已售出',owned:'已拥有',slotFull:'槽位已满',noMoney:'💰不足',
+    noVoucher:'本轮无凭证',noVoucherDesc:'已购买或无可用凭证',
+    upgrades:'🪐 升级：',
+    target:'目标：',score:'分',
+    bossPrefix:'⚠️ Boss效果：',bossSep:' — ',
+    handHint:'选择手牌出牌',
+    jdClose:'关闭',jdLeft:'◀ 左移',jdRight:'右移 ▶',
+    jcBuy:'确认购买 $',jcCancel:'取消',
+    pcBuy:'确认购买 $',pcCancel:'取消',pcCur:'当前',pcNew:'升级后',
+    winTitle:'🏆 通关！',winSub:'太厉害了！',winHandsLabel:'共出牌',winTimes:'次',
+    winRestart:'再来一局',
+    goTitle:'💀 游戏结束',goRestart:'重新开始',
+    diffTitle:'选择难度',diffSubtitle:'难度越高分数倍率越大',
+    helpTitle:'游戏规则',
+  },
+  en:{
+    play:'Play',discard:'Discard',leaveShop:'Leave Shop',restart:'Restart',newGame:'New Game',
+    continue:'Continue',nextRound:'Start',
+    labelHands:'Hands',labelDiscards:'Discards',labelMoney:'Money',
+    shopSec1:'🃏 Jokers',shopSec2:'🪐 Planets (Upgrade Hands)',shopSec3:'🎫 Vouchers (Permanent)',
+    rerollBtn:'Reroll',
+    badgeJ:'Joker',badgeP:'Planet',badgeV:'Voucher',
+    sold:'Sold',owned:'Owned',slotFull:'Full',noMoney:'💰 Need $',
+    noVoucher:'No Voucher',noVoucherDesc:'Purchased or unavailable',
+    upgrades:'🪐 Upgraded:',
+    target:'Target: ',score:'',
+    bossPrefix:'⚠️ Boss: ',bossSep:' — ',
+    handHint:'Select cards to play',
+    jdClose:'Close',jdLeft:'◀ Left',jdRight:'Right ▶',
+    jcBuy:'Buy $',jcCancel:'Cancel',
+    pcBuy:'Buy $',pcCancel:'Cancel',pcCur:'Current',pcNew:'Upgraded',
+    winTitle:'🏆 You Win!',winSub:'Amazing!',winHandsLabel:'Hands played',winTimes:'',
+    winRestart:'Play Again',
+    goTitle:'💀 Game Over',goRestart:'Restart',
+    diffTitle:'Choose Difficulty',diffSubtitle:'Higher difficulty = higher score targets',
+    helpTitle:'How to Play',
+  }
+};
+
 const HTYPES = {
-  STRAIGHT_FLUSH:  {name:'同花顺', bc:100, bm:8},
-  FOUR_OF_A_KIND:  {name:'四条',   bc:60,  bm:7},
-  FULL_HOUSE:      {name:'葫芦',   bc:40,  bm:4},
-  FLUSH:           {name:'同花',   bc:35,  bm:4},
-  STRAIGHT:        {name:'顺子',   bc:30,  bm:4},
-  THREE_OF_A_KIND: {name:'三条',   bc:30,  bm:3},
-  TWO_PAIR:        {name:'两对',   bc:20,  bm:2},
-  PAIR:            {name:'一对',   bc:10,  bm:2},
-  HIGH_CARD:       {name:'高牌',   bc:5,   bm:1},
+  STRAIGHT_FLUSH:  {name:'同花顺',name_en:'Straight Flush',  bc:100,bm:8},
+  FOUR_OF_A_KIND:  {name:'四条',  name_en:'Four of a Kind',  bc:60, bm:7},
+  FULL_HOUSE:      {name:'葫芦',  name_en:'Full House',       bc:40, bm:4},
+  FLUSH:           {name:'同花',  name_en:'Flush',            bc:35, bm:4},
+  STRAIGHT:        {name:'顺子',  name_en:'Straight',         bc:30, bm:4},
+  THREE_OF_A_KIND: {name:'三条',  name_en:'Three of a Kind',  bc:30, bm:3},
+  TWO_PAIR:        {name:'两对',  name_en:'Two Pair',         bc:20, bm:2},
+  PAIR:            {name:'一对',  name_en:'Pair',             bc:10, bm:2},
+  HIGH_CARD:       {name:'高牌',  name_en:'High Card',        bc:5,  bm:1},
 };
 
 // Base targets = Balatro White Stake (official)
@@ -700,10 +755,10 @@ const BLIND_TARGETS_BASE = [
 ];
 
 const DIFFICULTIES = [
-  { id:0, name:'新手',  emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
-  { id:1, name:'标准',  emoji:'⚔️', mult:1.0, money:4, hands:3, discards:3 },
-  { id:2, name:'困难',  emoji:'🔥', mult:1.5, money:3, hands:3, discards:2 },
-  { id:3, name:'极难',  emoji:'💀', mult:2.5, money:2, hands:2, discards:1 },
+  { id:0, name:'新手',  name_en:'Beginner',  emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
+  { id:1, name:'标准',  name_en:'Standard',  emoji:'⚔️', mult:1.0, money:4, hands:3, discards:3 },
+  { id:2, name:'困难',  name_en:'Hard',      emoji:'🔥', mult:1.5, money:3, hands:3, discards:2 },
+  { id:3, name:'极难',  name_en:'Nightmare', emoji:'💀', mult:2.5, money:2, hands:2, discards:1 },
 ];
 
 function getBlindTarget(ante, blind) {
@@ -714,47 +769,47 @@ function getBlindTarget(ante, blind) {
 const BLIND_NAMES = ['小盲注','大盲注','Boss盲注'];
 
 const BOSS_EFFECTS = [
-  {id:'WATER', name:'水之盲注', desc:'本局弃牌次数变为 0'},
-  {id:'EYE',   name:'眼之盲注', desc:'不能重复使用同种牌型'},
-  {id:'HEAD',  name:'头之盲注', desc:'随机一种花色不计筹码'},
+  {id:'WATER',name:'水之盲注',name_en:'The Water',   desc:'本局弃牌次数变为 0',          desc_en:'0 discards this round'},
+  {id:'EYE',  name:'眼之盲注',name_en:'The Eye',     desc:'不能重复使用同种牌型',         desc_en:'Cannot repeat hand types'},
+  {id:'HEAD', name:'头之盲注',name_en:'The Head',    desc:'随机一种花色不计筹码',         desc_en:'Random suit scores no Chips'},
 ];
 
 const PLANET_DEFS = [
-  {id:'P_HC', name:'冥王星', emoji:'🪐', hand:'HIGH_CARD'},
-  {id:'P_PR', name:'水星',   emoji:'⚫', hand:'PAIR'},
-  {id:'P_TP', name:'天王星', emoji:'🔵', hand:'TWO_PAIR'},
-  {id:'P_3K', name:'金星',   emoji:'🟡', hand:'THREE_OF_A_KIND'},
-  {id:'P_ST', name:'土星',   emoji:'💫', hand:'STRAIGHT'},
-  {id:'P_FL', name:'木星',   emoji:'🟠', hand:'FLUSH'},
-  {id:'P_FH', name:'地球',   emoji:'🌍', hand:'FULL_HOUSE'},
-  {id:'P_4K', name:'火星',   emoji:'🔴', hand:'FOUR_OF_A_KIND'},
-  {id:'P_SF', name:'海王星', emoji:'🔷', hand:'STRAIGHT_FLUSH'},
+  {id:'P_HC',name:'冥王星',name_en:'Pluto',   emoji:'🪐',hand:'HIGH_CARD'},
+  {id:'P_PR',name:'水星',  name_en:'Mercury', emoji:'⚫',hand:'PAIR'},
+  {id:'P_TP',name:'天王星',name_en:'Uranus',  emoji:'🔵',hand:'TWO_PAIR'},
+  {id:'P_3K',name:'金星',  name_en:'Venus',   emoji:'🟡',hand:'THREE_OF_A_KIND'},
+  {id:'P_ST',name:'土星',  name_en:'Saturn',  emoji:'💫',hand:'STRAIGHT'},
+  {id:'P_FL',name:'木星',  name_en:'Jupiter', emoji:'🟠',hand:'FLUSH'},
+  {id:'P_FH',name:'地球',  name_en:'Earth',   emoji:'🌍',hand:'FULL_HOUSE'},
+  {id:'P_4K',name:'火星',  name_en:'Mars',    emoji:'🔴',hand:'FOUR_OF_A_KIND'},
+  {id:'P_SF',name:'海王星',name_en:'Neptune', emoji:'🔷',hand:'STRAIGHT_FLUSH'},
 ];
 
 const JOKER_DEFS = [
-  {id:'J01',sym:'♥',col:'#c8304a',name:'快乐小丑',cost:3,desc:'含一对时：+8 倍率',
+  {id:'J01',sym:'♥',col:'#c8304a',name:'快乐小丑',name_en:'Jolly Joker',cost:3,desc:'含一对时：+8 倍率',desc_en:'+8 Mult if hand contains a Pair',
    apply(h,g){return ['PAIR','TWO_PAIR','FULL_HOUSE'].includes(h.type)?{am:8}:{};}},
-  {id:'J02',sym:'♦',col:'#d05818',name:'疯狂小丑',cost:3,desc:'含三条时：+12 倍率',
+  {id:'J02',sym:'♦',col:'#d05818',name:'疯狂小丑',name_en:'Zany Joker',cost:3,desc:'含三条时：+12 倍率',desc_en:'+12 Mult if hand contains Three of a Kind',
    apply(h,g){return ['THREE_OF_A_KIND','FULL_HOUSE','FOUR_OF_A_KIND'].includes(h.type)?{am:12}:{};}},
-  {id:'J03',sym:'♠',col:'#b89010',name:'愤怒小丑',cost:3,desc:'含两对时：+10 倍率',
+  {id:'J03',sym:'♠',col:'#b89010',name:'愤怒小丑',name_en:'Mad Joker',cost:3,desc:'含两对时：+10 倍率',desc_en:'+10 Mult if hand contains a Two Pair',
    apply(h,g){return ['TWO_PAIR','FULL_HOUSE'].includes(h.type)?{am:10}:{};}},
-  {id:'J04',sym:'→',col:'#2858c8',name:'古怪小丑',cost:3,desc:'含顺子时：+12 倍率',
+  {id:'J04',sym:'→',col:'#2858c8',name:'古怪小丑',name_en:'Crazy Joker',cost:3,desc:'含顺子时：+12 倍率',desc_en:'+12 Mult if hand contains a Straight',
    apply(h,g){return ['STRAIGHT','STRAIGHT_FLUSH'].includes(h.type)?{am:12}:{};}},
-  {id:'J05',sym:'♣',col:'#7030b8',name:'滑稽小丑',cost:3,desc:'含同花时：+10 倍率',
+  {id:'J05',sym:'♣',col:'#7030b8',name:'滑稽小丑',name_en:'Droll Joker',cost:3,desc:'含同花时：+10 倍率',desc_en:'+10 Mult if hand contains a Flush',
    apply(h,g){return ['FLUSH','STRAIGHT_FLUSH'].includes(h.type)?{am:10}:{};}},
-  {id:'J06',sym:'◈',col:'#c87010',name:'狡猾小丑',cost:4,desc:'含一对时：+50 筹码',
+  {id:'J06',sym:'◈',col:'#c87010',name:'狡猾小丑',name_en:'Sly Joker',cost:4,desc:'含一对时：+50 筹码',desc_en:'+50 Chips if hand contains a Pair',
    apply(h,g){return ['PAIR','TWO_PAIR','FULL_HOUSE'].includes(h.type)?{ac:50}:{};}},
-  {id:'J07',sym:'½',col:'#189880',name:'半个小丑',cost:5,desc:'出牌≤3张：+20 倍率',
+  {id:'J07',sym:'½',col:'#189880',name:'半个小丑',name_en:'Half Joker',cost:5,desc:'出牌≤3张：+20 倍率',desc_en:'+20 Mult if played 3 or fewer cards',
    apply(h,g){return h.n<=3?{am:20}:{};}},
-  {id:'J08',sym:'⚑',col:'#b82010',name:'横幅',cost:5,desc:'每剩余1次弃牌：+30 筹码',
+  {id:'J08',sym:'⚑',col:'#b82010',name:'横幅',name_en:'Banner',cost:5,desc:'每剩余1次弃牌：+30 筹码',desc_en:'+30 Chips for each remaining discard',
    apply(h,g){return {ac:g.discardsLeft*30};}},
-  {id:'J09',sym:'☽',col:'#202870',name:'神秘巅峰',cost:5,desc:'弃牌次数为0时：+15 倍率',
+  {id:'J09',sym:'☽',col:'#202870',name:'神秘巅峰',name_en:'Mystic Summit',cost:5,desc:'弃牌次数为0时：+15 倍率',desc_en:'+15 Mult when 0 discards remain',
    apply(h,g){return g.discardsLeft===0?{am:15}:{};}},
-  {id:'J10',sym:'?',col:'#484860',name:'印错牌',cost:4,desc:'随机 +0~23 倍率',
+  {id:'J10',sym:'?',col:'#484860',name:'印错牌',name_en:'Misprint',cost:4,desc:'随机 +0~23 倍率',desc_en:'+0 to +23 random Mult',
    apply(h,g){return {am:Math.floor(Math.random()*24)};}},
-  {id:'J11',sym:'★',col:'#208838',name:'忠诚卡',cost:5,desc:'每出6次牌：×4 倍率',
+  {id:'J11',sym:'★',col:'#208838',name:'忠诚卡',name_en:'Loyalty Card',cost:5,desc:'每出6次牌：×4 倍率',desc_en:'×4 Mult every 6 hands played',
    apply(h,g){return (g.handsPlayed>0&&g.handsPlayed%6===0)?{xm:4}:{};}},
-  {id:'J12',sym:'↑',col:'#c04010',name:'举拳头',cost:5,desc:'手中最低点数×2 作为+倍率（使用未打出的手牌）',
+  {id:'J12',sym:'↑',col:'#c04010',name:'举拳头',name_en:'Raised Fist',cost:5,desc:'手中最低点数×2 作为+倍率（使用未打出的手牌）',desc_en:'Lowest held card rank ×2 added to Mult',
    apply(h,g){
      // Raised Fist: use lowest ranked card REMAINING in hand (not played)
      const remaining = g.hand.filter(c=>!c.sel);
@@ -762,45 +817,45 @@ const JOKER_DEFS = [
      const min=Math.min(...remaining.map(c=>RANK_ORD[c.rank]));
      return {am:min*2};
    }},
-  {id:'J13',sym:'⊟',col:'#404458',name:'小丑模板',cost:8,desc:'每个空槽（含本身）：×N 总倍率',
+  {id:'J13',sym:'⊟',col:'#404458',name:'小丑模板',name_en:'Joker Stencil',cost:8,desc:'每个空槽（含本身）：×N 总倍率',desc_en:'×N Mult per empty Joker slot (incl. this one)',
    apply(h,g){const e=(g.jokerSlots||5)-g.jokers.length; return e>0?{xm:1+e}:{};}},
-  {id:'J14',sym:'◆',col:'#1870b8',name:'聪明小丑',cost:4,desc:'含两对时：+80 筹码',
+  {id:'J14',sym:'◆',col:'#1870b8',name:'聪明小丑',name_en:'Clever Joker',cost:4,desc:'含两对时：+80 筹码',desc_en:'+80 Chips if hand contains a Two Pair',
    apply(h,g){return ['TWO_PAIR','FULL_HOUSE'].includes(h.type)?{ac:80}:{};}},
-  {id:'J15',sym:'⚔',col:'#185038',name:'狡野小丑',cost:5,desc:'含三条时：+100 筹码',
+  {id:'J15',sym:'⚔',col:'#185038',name:'狡野小丑',name_en:'Wily Joker',cost:5,desc:'含三条时：+100 筹码',desc_en:'+100 Chips if hand contains Three of a Kind',
    apply(h,g){return ['THREE_OF_A_KIND','FULL_HOUSE','FOUR_OF_A_KIND'].includes(h.type)?{ac:100}:{};}},
-  {id:'J16',sym:'⇒',col:'#2040b8',name:'阴险小丑',cost:4,desc:'含顺子时：+100 筹码',
+  {id:'J16',sym:'⇒',col:'#2040b8',name:'阴险小丑',name_en:'Devious Joker',cost:4,desc:'含顺子时：+100 筹码',desc_en:'+100 Chips if hand contains a Straight',
    apply(h,g){return ['STRAIGHT','STRAIGHT_FLUSH'].includes(h.type)?{ac:100}:{};}},
-  {id:'J17',sym:'◇',col:'#6020a0',name:'灵巧小丑',cost:4,desc:'含同花时：+80 筹码',
+  {id:'J17',sym:'◇',col:'#6020a0',name:'灵巧小丑',name_en:'Crafty Joker',cost:4,desc:'含同花时：+80 筹码',desc_en:'+80 Chips if hand contains a Flush',
    apply(h,g){return ['FLUSH','STRAIGHT_FLUSH'].includes(h.type)?{ac:80}:{};}},
   // ── Per-card effect jokers ──
-  {id:'J18',sym:'Φ',col:'#a06018',name:'斐波那契',cost:8,desc:'打出的A/2/3/5/8各获得+8倍率',
+  {id:'J18',sym:'Φ',col:'#a06018',name:'斐波那契',name_en:'Fibonacci',cost:8,desc:'打出的A/2/3/5/8各获得+8倍率',desc_en:'Played A/2/3/5/8 each give +8 Mult',
    perCard(c){return ['A','2','3','5','8'].includes(c.rank)?{am:8}:{};}},
-  {id:'J19',sym:'☠',col:'#902020',name:'恐怖脸',cost:4,desc:'打出的花牌(J/Q/K)各获得+30筹码',
+  {id:'J19',sym:'☠',col:'#902020',name:'恐怖脸',name_en:'Scary Face',cost:4,desc:'打出的花牌(J/Q/K)各获得+30筹码',desc_en:'Played face cards (J/Q/K) each give +30 Chips',
    perCard(c){return ['J','Q','K'].includes(c.rank)?{ac:30}:{};}},
-  {id:'J20',sym:'½',col:'#187040',name:'双数小丑',cost:5,desc:'打出的偶数牌各获得+4倍率',
+  {id:'J20',sym:'½',col:'#187040',name:'双数小丑',name_en:'Even Steven',cost:5,desc:'打出的偶数牌各获得+4倍率',desc_en:'Played even-rank cards each give +4 Mult',
    perCard(c){const n=parseInt(c.rank);return(!isNaN(n)&&n%2===0)?{am:4}:{};}},
-  {id:'J21',sym:'⅓',col:'#704018',name:'奇数小丑',cost:5,desc:'打出的奇数牌各获得+31筹码',
+  {id:'J21',sym:'⅓',col:'#704018',name:'奇数小丑',name_en:'Odd Todd',cost:5,desc:'打出的奇数牌各获得+31筹码',desc_en:'Played odd-rank cards each give +31 Chips',
    perCard(c){const n=parseInt(c.rank);return(!isNaN(n)&&n%2===1)?{ac:31}:{};}},
-  {id:'J22',sym:'Σ',col:'#a0a010',name:'学者',cost:6,desc:'打出的A各获得+20筹码+4倍率',
+  {id:'J22',sym:'Σ',col:'#a0a010',name:'学者',name_en:'Scholar',cost:6,desc:'打出的A各获得+20筹码+4倍率',desc_en:'Played Aces each give +20 Chips and +4 Mult',
    perCard(c){return c.rank==='A'?{ac:20,am:4}:{};}},
-  {id:'J23',sym:'♔',col:'#702080',name:'特里布雷特',cost:9,desc:'打出的Q和K各获得×2倍率',
+  {id:'J23',sym:'♔',col:'#702080',name:'特里布雷特',name_en:'Triboulet',cost:9,desc:'打出的Q和K各获得×2倍率',desc_en:'Played Queens and Kings each give ×2 Mult',
    perCard(c){return ['Q','K'].includes(c.rank)?{xm:2}:{};}},
   // ── Dynamic state jokers (jd.val) ──
-  {id:'J24',sym:'✦',col:'#1850a0',name:'超新星',cost:5,desc:'将本手型本局累计出牌次数加入倍率',dynamic:true,initVal:0,
+  {id:'J24',sym:'✦',col:'#1850a0',name:'超新星',name_en:'Supernova',cost:5,desc:'将本手型本局累计出牌次数加入倍率',desc_en:'Adds times this hand type was played to Mult',dynamic:true,initVal:0,
    apply(h,g,j){const c=(g.handTypeCounts||{})[h.type]||0;return c>0?{am:c}:{};}},
-  {id:'J25',sym:'$',col:'#208040',name:'靴带',cost:6,desc:'每持有$5获得+2倍率',
+  {id:'J25',sym:'$',col:'#208040',name:'靴带',name_en:'Bootstraps',cost:6,desc:'每持有$5获得+2倍率',desc_en:'+2 Mult for every $5 held',
    apply(h,g,j){const c=Math.floor(g.money/5);return c>0?{am:c*2}:{};}},
-  {id:'J26',sym:'↑↓',col:'#18a038',name:'绿色小丑',cost:4,desc:'每次弃牌+1倍率，每次出牌-1倍率（可为负）',dynamic:true,initVal:0,
+  {id:'J26',sym:'↑↓',col:'#18a038',name:'绿色小丑',name_en:'Green Joker',cost:4,desc:'每次弃牌+1倍率，每次出牌-1倍率（可为负）',desc_en:'+1 Mult per discard, -1 Mult per hand played',dynamic:true,initVal:0,
    apply(h,g,j){const v=j.val||0;return v!==0?{am:v}:{};}},
-  {id:'J27',sym:'✧',col:'#1878a8',name:'星座小丑',cost:6,desc:'每次购买行星牌积累+0.1倍率',dynamic:true,initVal:0,
+  {id:'J27',sym:'✧',col:'#1878a8',name:'星座小丑',name_en:'Constellation',cost:6,desc:'每次购买行星牌积累+0.1倍率',desc_en:'Gains +0.1 Mult each time a Planet card is bought',dynamic:true,initVal:0,
    apply(h,g,j){const v=+(j.val||0).toFixed(1);return v>0?{am:v}:{};}},
-  {id:'J28',sym:'►',col:'#a06010',name:'骑车小丑',cost:6,desc:'连续打出高牌积累+1倍率，含对子以上重置为0',dynamic:true,initVal:0,
+  {id:'J28',sym:'►',col:'#a06010',name:'骑车小丑',name_en:'Ride the Bus',cost:6,desc:'连续打出高牌积累+1倍率，含对子以上重置为0',desc_en:'+1 Mult per consecutive High Card hand, resets on Pair+',dynamic:true,initVal:0,
    apply(h,g,j){const v=j.val||0;return v>0?{am:v}:{};}},
-  {id:'J29',sym:'❋',col:'#c040a0',name:'冰淇淋',cost:6,desc:'初始+100筹码，每出一手-5筹码',dynamic:true,initVal:100,
+  {id:'J29',sym:'❋',col:'#c040a0',name:'冰淇淋',name_en:'Ice Cream',cost:6,desc:'初始+100筹码，每出一手-5筹码',desc_en:'+100 Chips, -5 Chips each hand played',dynamic:true,initVal:100,
    apply(h,g,j){const v=j.val||0;return v>0?{ac:v}:{};}},
-  {id:'J30',sym:'▲',col:'#c08010',name:'爆米花',cost:5,desc:'初始+20倍率，每过一关-4倍率（耗尽后消失）',dynamic:true,initVal:20,
+  {id:'J30',sym:'▲',col:'#c08010',name:'爆米花',name_en:'Popcorn',cost:5,desc:'初始+20倍率，每过一关-4倍率（耗尽后消失）',desc_en:'+20 Mult, -4 per round won (destroys at 0)',dynamic:true,initVal:20,
    apply(h,g,j){const v=j.val||0;return v>0?{am:v}:{};}},
-  {id:'J31',sym:'□',col:'#204058',name:'蓝图',cost:10,desc:'复制右侧小丑的效果',
+  {id:'J31',sym:'□',col:'#204058',name:'蓝图',name_en:'Blueprint',cost:10,desc:'复制右侧小丑的效果',desc_en:'Copies the effect of the Joker to the right',
    apply(h,g,j){
      const idx=g.jokers.indexOf(j);
      if(idx<0||idx>=g.jokers.length-1)return{};
@@ -809,20 +864,20 @@ const JOKER_DEFS = [
      if(!nDef||nDef.retrigger||nDef.perCard)return{};
      return nDef.apply?nDef.apply(h,g,nxt):{};
    }},
-  {id:'J32',sym:'⊞',col:'#186030',name:'方块小丑',cost:4,desc:'恰好打出4张牌时：+20筹码',
+  {id:'J32',sym:'⊞',col:'#186030',name:'方块小丑',name_en:'Square Joker',cost:4,desc:'恰好打出4张牌时：+20筹码',desc_en:'+20 Chips if exactly 4 cards are played',
    apply(h,g,j){return h.n===4?{ac:20}:{};}},
-  {id:'J33',sym:'⊙',col:'#602080',name:'独行侠',cost:5,desc:'作为唯一小丑时：×3倍率',
+  {id:'J33',sym:'⊙',col:'#602080',name:'独行侠',name_en:'Loner',cost:5,desc:'作为唯一小丑时：×3倍率',desc_en:'×3 Mult if this is your only Joker',
    apply(h,g,j){return g.jokers.length===1?{xm:3}:{};}},
   // ── Retrigger jokers ──
-  {id:'J34',sym:'⚡',col:'#186830',name:'黑客',cost:6,desc:'打出的2/3/4/5各重复计分一次',
+  {id:'J34',sym:'⚡',col:'#186830',name:'黑客',name_en:'Hack',cost:6,desc:'打出的2/3/4/5各重复计分一次',desc_en:'Played 2s, 3s, 4s, 5s are each retriggered once',
    retrigger(c){return ['2','3','4','5'].includes(c.rank)?1:0;}},
-  {id:'J35',sym:'↺',col:'#800028',name:'网球袜',cost:6,desc:'打出的J/Q/K各重复计分一次',
+  {id:'J35',sym:'↺',col:'#800028',name:'网球袜',name_en:'Sock and Buskin',cost:6,desc:'打出的J/Q/K各重复计分一次',desc_en:'Played face cards are each retriggered once',
    retrigger(c){return ['J','Q','K'].includes(c.rank)?1:0;}},
-  {id:'J36',sym:'☽',col:'#280868',name:'黄昏',cost:5,desc:'每轮最后一手出牌，所有牌重复计分一次',
+  {id:'J36',sym:'☽',col:'#280868',name:'黄昏',name_en:'Dusk',cost:5,desc:'每轮最后一手出牌，所有牌重复计分一次',desc_en:'All played cards retrigger on the last hand of a round',
    retrigger(c,hr,g){return g.handsLeft===0?1:0;}},
-  {id:'J37',sym:'⊕',col:'#186880',name:'晾衣夹',cost:5,desc:'第一张打出的牌额外重复计分2次',
+  {id:'J37',sym:'⊕',col:'#186880',name:'晾衣夹',name_en:'Hanging Chad',cost:5,desc:'第一张打出的牌额外重复计分2次',desc_en:'The first played card is retriggered 2 more times',
    retrigger(c,hr,g,j,idx){return idx===0?2:0;}},
-  {id:'J38',sym:'∿',col:'#103878',name:'气泡水',cost:7,desc:'所有打出的牌各重复计分一次，共10次出牌后消失',dynamic:true,initVal:10,
+  {id:'J38',sym:'∿',col:'#103878',name:'气泡水',name_en:'Seltzer',cost:7,desc:'所有打出的牌各重复计分一次，共10次出牌后消失',desc_en:'All cards retrigger; self-destructs after 10 hands',dynamic:true,initVal:10,
    retrigger(c,hr,g,j){return(j.val||0)>0?1:0;}},
 ];
 
@@ -831,35 +886,33 @@ const JOKER_DEFS = [
 // =============================================
 // Each voucher: {id, name, cost, desc, unlocks?, apply(g)}
 const VOUCHER_DEFS = [
-  {id:'V01',name:'过剩库存',cost:10,desc:'商店多展示1张小丑牌',unlocks:'V02',
+  {id:'V01',name:'过剩库存',name_en:'Overstock',cost:10,desc:'商店多展示1张小丑牌',desc_en:'Shop shows 1 extra Joker',unlocks:'V02',
    apply(g){g.voucherEffects.extraShopJokers=(g.voucherEffects.extraShopJokers||0)+1;}},
-  {id:'V02',name:'过剩库存+',cost:10,desc:'商店再多展示1张小丑牌（叠加）',
+  {id:'V02',name:'过剩库存+',name_en:'Overstock Plus',cost:10,desc:'商店再多展示1张小丑牌（叠加）',desc_en:'Shop shows 1 more extra Joker (stacks)',
    apply(g){g.voucherEffects.extraShopJokers=(g.voucherEffects.extraShopJokers||0)+1;}},
-  {id:'V03',name:'清仓特卖',cost:10,desc:'商店所有商品价格-$1',unlocks:'V04',
+  {id:'V03',name:'清仓特卖',name_en:'Clearance Sale',cost:10,desc:'商店所有商品价格-$1',desc_en:'All shop items cost 商店所有商品价格-$1 less',unlocks:'V04',
    apply(g){g.voucherEffects.discount=(g.voucherEffects.discount||0)+1;}},
-  {id:'V04',name:'清空',cost:10,desc:'商店所有商品价格再-$1（叠加）',
+  {id:'V04',name:'清空',name_en:'Liquidation',cost:10,desc:'商店所有商品价格再-$1（叠加）',desc_en:'All shop items cost 商店所有商品价格再-$1（叠加） less (stacks)',
    apply(g){g.voucherEffects.discount=(g.voucherEffects.discount||0)+1;}},
-  {id:'V05',name:'行星商人',cost:10,desc:'商店保证出现2张行星牌',unlocks:'V06',
+  {id:'V05',name:'行星商人',name_en:'Planet Merchant',cost:10,desc:'商店保证出现2张行星牌',desc_en:'Shop always shows 2 Planet cards',unlocks:'V06',
    apply(g){g.voucherEffects.extraPlanets=(g.voucherEffects.extraPlanets||0)+1;}},
-  {id:'V06',name:'行星大亨',cost:10,desc:'行星牌价格-$1',
+  {id:'V06',name:'行星大亨',name_en:'Planet Tycoon',cost:10,desc:'行星牌价格-$1',desc_en:'Planet cards cost 行星牌价格-$1 less',
    apply(g){g.voucherEffects.planetDiscount=(g.voucherEffects.planetDiscount||0)+1;}},
-  {id:'V07',name:'反物质',cost:10,desc:'+1 小丑栏位（永久）',
+  {id:'V07',name:'反物质',name_en:'Antimatter',cost:10,desc:'+1 小丑栏位（永久）',desc_en:'+1 Joker slot (permanent)',
    apply(g){g.jokerSlots=(g.jokerSlots||5)+1;}},
 ];
 
 function getAvailableVoucher(g){
-  // Return one voucher available for this shop visit:
-  // base unlocked by default; upgrade unlocked if its prerequisite is bought
-  for(const v of VOUCHER_DEFS){
-    if(g.boughtVouchers.has(v.id)) continue;
-    // Check if it's a base (no one unlocks it) or its predecessor was bought
-    const isBase = !VOUCHER_DEFS.some(x=>x.unlocks===v.id);
+  // Collect all currently purchasable vouchers (base or unlocked upgrade)
+  const available = VOUCHER_DEFS.filter(v => {
+    if(g.boughtVouchers.has(v.id)) return false;
     const unlockedBy = VOUCHER_DEFS.find(x=>x.unlocks===v.id);
-    if(isBase || (unlockedBy && g.boughtVouchers.has(unlockedBy.id))){
-      return v;
-    }
-  }
-  return null;
+    // It's a base voucher if nothing unlocks it, or its predecessor is bought
+    return !unlockedBy || g.boughtVouchers.has(unlockedBy.id);
+  });
+  if(available.length===0) return null;
+  // Pick randomly (like Balatro's shuffled voucher pool)
+  return available[Math.floor(Math.random()*available.length)];
 }
 
 // =============================================
@@ -1074,12 +1127,15 @@ function showScreen(id){
 
 function renderTopBar(){
   document.getElementById('info-ante').textContent=G.ante;
-  document.getElementById('info-blind').textContent=BLIND_NAMES[G.blind];
+  document.getElementById('info-blind').textContent=tBlind(G.blind);
   document.getElementById('info-money').textContent='$'+G.money;
   const pct=Math.min(100,Math.round(G.score/G.target*100));
   document.getElementById('score-bar').style.width=pct+'%';
   document.getElementById('score-bar-txt').textContent=
     G.score.toLocaleString()+' / '+G.target.toLocaleString();
+  // Update lang button
+  const lb=document.getElementById('btn-lang');
+  if(lb) lb.textContent=CURR_LANG==='zh'?'EN':'中文';
 }
 
 function renderHandLevels(){
@@ -1095,8 +1151,8 @@ function renderHandLevels(){
     const bc = ht.bc + (lv-1)*15, bm = ht.bm + (lv-1);
     const badge = document.createElement('span');
     badge.className = 'hlv-badge';
-    badge.innerHTML = `<span class="hlv-name">${ht.name}</span><span class="hlv-lv">Lv.${lv}</span>`;
-    badge.addEventListener('click', e => showHandLvTooltip(e, ht.name, bc, bm, lv));
+    badge.innerHTML = `<span class="hlv-name">${tDef(ht,'name')}</span><span class="hlv-lv">Lv.${lv}</span>`;
+    badge.addEventListener('click', e => showHandLvTooltip(e, tDef(ht,'name'), bc, bm, lv));
     slots.appendChild(badge);
   }
 }
@@ -1165,8 +1221,8 @@ function openJokerDetail(def, idx){
   const total=G.jokers.length;
   const lBtn=document.getElementById('jd-move-left');
   const rBtn=document.getElementById('jd-move-right');
-  if(lBtn) lBtn.style.display = (_detailJokerIdx>0&&total>1)?'inline-flex':'none';
-  if(rBtn) rBtn.style.display = (_detailJokerIdx>=0&&_detailJokerIdx<total-1&&total>1)?'inline-flex':'none';
+  if(lBtn){ lBtn.textContent=t('jdLeft'); lBtn.style.display=(_detailJokerIdx>0&&total>1)?'inline-flex':'none'; }
+  if(rBtn){ rBtn.textContent=t('jdRight'); rBtn.style.display=(_detailJokerIdx>=0&&_detailJokerIdx<total-1&&total>1)?'inline-flex':'none'; }
   document.getElementById('joker-detail').style.display='flex';
 }
 
@@ -1204,12 +1260,13 @@ function mkCard(card){
 
 function updateHTDisplay(){
   const sel=G.hand.filter(c=>c.sel);
-  if(sel.length===0){ document.getElementById('hand-type-display').textContent='选择手牌出牌'; return; }
+  if(sel.length===0){ document.getElementById('hand-type-display').textContent=t('handHint'); return; }
   const hr=evalHand(sel);
   const lv=G.handLevels[hr.type]||1;
   const lvBadge=lv>1?` Lv.${lv}`:'';
-  let txt=hr.name+lvBadge+' ✨';
-  if(G.bossEffect==='EYE'&&G.playedTypes.includes(hr.type)) txt+=' ❌(已用过)';
+  const htName=tDef(HTYPES[hr.type],'name');
+  let txt=htName+lvBadge+' ✨';
+  if(G.bossEffect==='EYE'&&G.playedTypes.includes(hr.type)) txt+=CURR_LANG==='en'?' ❌(used)':' ❌(已用过)';
   document.getElementById('hand-type-display').textContent=txt;
 }
 
@@ -1230,9 +1287,9 @@ function renderBossBanner(){
   const b=document.getElementById('boss-banner');
   if(G.blind===2&&G.bossEffect){
     const e=BOSS_EFFECTS.find(x=>x.id===G.bossEffect);
-    let desc=e.desc;
-    if(G.bossEffect==='HEAD') desc+=`（${G.bossDebuffSuit}）`;
-    b.textContent=`⚠️ Boss效果：${e.name} — ${desc}`;
+    let desc=tDef(e,'desc');
+    if(G.bossEffect==='HEAD') desc+=` (${G.bossDebuffSuit})`;
+    b.textContent=`${t('bossPrefix')}${tDef(e,'name')}${t('bossSep')}${desc}`;
     b.classList.add('on');
   } else { b.classList.remove('on'); }
 }
@@ -1241,17 +1298,17 @@ function renderBlindSelect(){
   G.target=getBlindTarget(G.ante, G.blind);
   G.setupBoss();
   const diff=DIFFICULTIES[G.difficulty??1];
-  document.getElementById('bs-type').textContent=BLIND_NAMES[G.blind];
-  document.getElementById('bs-ante').textContent=`Ante ${G.ante} / 8 · ${diff.emoji} ${diff.name}`;
-  document.getElementById('bs-target').textContent=`目标：${G.target.toLocaleString()} 分`;
+  document.getElementById('bs-type').textContent=tBlind(G.blind);
+  document.getElementById('bs-ante').textContent=`Ante ${G.ante} / 8 · ${diff.emoji} ${tDef(diff,'name')}`;
+  document.getElementById('bs-target').textContent=`${t('target')}${G.target.toLocaleString()}${t('score')}`;
   if(G.blind===2&&G.bossEffect){
     const e=BOSS_EFFECTS.find(x=>x.id===G.bossEffect);
-    let desc=e.desc;
-    if(G.bossEffect==='HEAD') desc+=`（${G.bossDebuffSuit}）`;
-    document.getElementById('bs-name').textContent=e.name;
+    let desc=tDef(e,'desc');
+    if(G.bossEffect==='HEAD') desc+=` (${G.bossDebuffSuit})`;
+    document.getElementById('bs-name').textContent=tDef(e,'name');
     document.getElementById('bs-effect').textContent=`⚠️ ${desc}`;
   } else {
-    document.getElementById('bs-name').textContent=BLIND_NAMES[G.blind];
+    document.getElementById('bs-name').textContent=tBlind(G.blind);
     document.getElementById('bs-effect').textContent='';
   }
   showScreen('screen-blind-select');
@@ -1264,7 +1321,7 @@ function renderPlaying(){
 
 function renderShop(){
   G.shopRerollCost = 5; // reset cost when entering new shop
-  genShop();
+  if(!G.shopItems) genShop(); // only generate if not already set (prevents free refresh)
   document.getElementById('shop-money').textContent='$'+G.money;
   renderShopItems();
   showScreen('screen-shop');
@@ -1272,6 +1329,10 @@ function renderShop(){
 
 function renderShopItems(){
   document.getElementById('shop-money').textContent='$'+G.money;
+  // Update section headers
+  const h1=document.getElementById('shop-h1'); if(h1) h1.textContent=t('shopSec1');
+  const h2=document.getElementById('shop-h2'); if(h2) h2.textContent=t('shopSec2');
+  const h3=document.getElementById('shop-h3'); if(h3) h3.textContent=t('shopSec3');
   const owned=new Set(G.jokers.map(j=>j.id));
   const jc=document.getElementById('shop-jokers');
   jc.innerHTML='';
@@ -1282,7 +1343,8 @@ function renderShopItems(){
     const disabled=item.sold||isOwned||noMoney||full;
     const el=document.createElement('div');
     el.className='shop-item'+(item.sold?' sold':disabled?' cant-afford':'');
-    el.innerHTML=`<span class="badge badge-j">小丑</span><div class="iname">${item.name}</div><div class="idesc">${item.desc}</div><div class="icost">${item.sold?'已售出':isOwned?'已拥有':full?'槽位已满':'$'+item.cost}</div>`;
+    const statusTxt=item.sold?t('sold'):isOwned?t('owned'):full?t('slotFull'):'$'+item.cost;
+    el.innerHTML=`<span class="badge badge-j">${t('badgeJ')}</span><div class="iname">${tDef(item,'name')}</div><div class="idesc">${tDef(item,'desc')}</div><div class="icost">${statusTxt}</div>`;
     if(!disabled) el.addEventListener('click',()=>buyJoker(item));
     jc.appendChild(el);
   }
@@ -1294,7 +1356,7 @@ function renderShopItems(){
     el.className='shop-item'+(item.sold?' sold':noMoney?' cant-afford':'');
     const ht=HTYPES[item.hand];
     const lv=G.handLevels[item.hand]||1;
-    el.innerHTML=`<span class="badge badge-p">行星</span><div class="iname">${item.emoji} ${item.name}</div><div class="idesc">升级 ${ht.name}<br>当前 Lv.${lv}</div><div class="icost">${item.sold?'已售出':noMoney?'💰不足':'$'+item.cost}</div>`;
+    el.innerHTML=`<span class="badge badge-p">${t('badgeP')}</span><div class="iname">${item.emoji} ${tDef(item,'name')}</div><div class="idesc">${tDef(ht,'name')} Lv.${lv}</div><div class="icost">${item.sold?t('sold'):noMoney?t('noMoney'):'$'+item.cost}</div>`;
     if(!item.sold&&!noMoney) el.addEventListener('click',()=>buyPlanet(item));
     pc.appendChild(el);
   }
@@ -1307,18 +1369,18 @@ function renderShopItems(){
       const noMoney=G.money<v.cost;
       const el=document.createElement('div');
       el.className='shop-item'+(noMoney?' cant-afford':'');
-      el.innerHTML=`<span class="badge badge-v">凭证</span><div class="iname">${v.name}</div><div class="idesc">${v.desc}</div><div class="icost">${noMoney?'💰不足':'$'+v.cost}</div>`;
+      el.innerHTML=`<span class="badge badge-v">${t('badgeV')}</span><div class="iname">${tDef(v,'name')}</div><div class="idesc">${tDef(v,'desc')}</div><div class="icost">${noMoney?t('noMoney'):'$'+v.cost}</div>`;
       if(!noMoney) el.addEventListener('click',()=>buyVoucher(v));
       vc.appendChild(el);
     } else {
       const el=document.createElement('div');
       el.className='shop-item sold';
-      el.innerHTML=`<span class="badge badge-v">凭证</span><div class="iname">本轮无凭证</div><div class="idesc">已购买或无可用凭证</div><div class="icost">—</div>`;
+      el.innerHTML=`<span class="badge badge-v">${t('badgeV')}</span><div class="iname">${t('noVoucher')}</div><div class="idesc">${t('noVoucherDesc')}</div><div class="icost">—</div>`;
       vc.appendChild(el);
     }
   }
   const rc=G.shopRerollCost||5;
-  document.getElementById('btn-reroll').textContent=`重置商品 ($${rc})`;
+  document.getElementById('btn-reroll').textContent=`${t('rerollBtn')} ($${rc})`;
   document.getElementById('btn-reroll').disabled=G.money<rc;
 }
 
@@ -1393,6 +1455,12 @@ function saveGame() {
       voucherEffects: G.voucherEffects||{},
       hand: G.hand ? G.hand.map(c=>({suit:c.suit,rank:c.rank})) : [],
       deck: G.deck ? G.deck.pile.map(c=>({suit:c.suit,rank:c.rank})) : [],
+      // Save shop item IDs + sold status (no functions, reconstruct on load)
+      shopSave: G.shopItems ? {
+        jokerIds: G.shopItems.jokers.map(j=>({id:j.id,sold:j.sold,cost:j.cost})),
+        planetIds: G.shopItems.planets.map(p=>({id:p.id,sold:p.sold,cost:p.cost})),
+        voucherId: G.shopItems.voucher ? {id:G.shopItems.voucher.id,sold:G.shopItems.voucher.sold,cost:G.shopItems.voucher.cost} : null,
+      } : null,
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(s));
   } catch(e) { console.warn('Save failed', e); }
@@ -1422,6 +1490,26 @@ function loadGame() {
     const deckPile = (s.deck||[]).map(c=>new Card(c.suit,c.rank));
     G.deck = { pile: deckPile, deal(n){ return this.pile.splice(0,Math.min(n,this.pile.length)); } };
     G.target = getBlindTarget(G.ante, G.blind);
+    // Restore shop items (reconstruct full objects from saved IDs)
+    if(s.shopSave && s.state === 'SHOP'){
+      const ss = s.shopSave;
+      G.shopItems = {
+        jokers: ss.jokerIds.map(x=>{
+          const def=JOKER_DEFS.find(d=>d.id===x.id);
+          return def ? {...def, sold:x.sold, cost:x.cost} : null;
+        }).filter(Boolean),
+        planets: ss.planetIds.map(x=>{
+          const def=PLANET_DEFS.find(d=>d.id===x.id);
+          return def ? {...def, sold:x.sold, cost:x.cost} : null;
+        }).filter(Boolean),
+        voucher: ss.voucherId ? (()=>{
+          const def=VOUCHER_DEFS.find(d=>d.id===ss.voucherId.id);
+          return def ? {...def, sold:ss.voucherId.sold, cost:ss.voucherId.cost} : null;
+        })() : null,
+      };
+    } else {
+      G.shopItems = null;
+    }
     return true;
   } catch(e) {
     console.warn('Load failed', e);
@@ -1787,13 +1875,15 @@ document.getElementById('btn-start').addEventListener('click',()=>{ G.startBlind
 document.getElementById('btn-play').addEventListener('click',playHand);
 document.getElementById('btn-discard').addEventListener('click',discard);
 document.getElementById('btn-sco-continue').addEventListener('click',afterScoring);
-document.getElementById('btn-next-ante').addEventListener('click',()=>{ G.state='BLIND_SELECT'; renderBlindSelect(); });
+document.getElementById('btn-next-ante').addEventListener('click',()=>{ G.shopItems=null; G.state='BLIND_SELECT'; renderBlindSelect(); });
 document.getElementById('btn-reroll').addEventListener('click',()=>{
   const rc=G.shopRerollCost||5;
   if(G.money<rc) return;
   G.money-=rc;
   G.shopRerollCost=rc+1; // each reroll costs +$1 more (Balatro rule)
+  G.shopItems=null; // clear first so genShop generates fresh
   genShop();
+  saveGame(); // persist new items immediately
   renderShopItems();
 });
 document.getElementById('btn-restart').addEventListener('click',restart);
@@ -1801,6 +1891,46 @@ document.getElementById('btn-restart-win').addEventListener('click',restart);
 document.getElementById('btn-newgame').addEventListener('click',()=>{
   if(confirm('放弃当前游戏，重新开始？')) restart();
 });
+document.getElementById('btn-lang').addEventListener('click',()=>{
+  CURR_LANG = CURR_LANG==='zh'?'en':'zh';
+  localStorage.setItem('balatro_lang', CURR_LANG);
+  // Re-render current screen
+  const activeScreen = document.querySelector('.screen.active');
+  if(activeScreen){
+    const sid = activeScreen.id;
+    if(sid==='screen-playing') renderPlaying();
+    else if(sid==='screen-shop') renderShop();
+    else if(sid==='screen-blind-select') renderBlindSelect();
+    else if(sid==='screen-difficulty'||sid==='screen-win'||sid==='screen-gameover') applyI18nStatic();
+  }
+  applyI18nStatic();
+});
+
+function applyI18nStatic(){
+  // Update play buttons
+  const bp=document.getElementById('btn-play');
+  if(bp) bp.innerHTML=`▶ ${t('play')}`;
+  const bd=document.getElementById('btn-discard');
+  if(bd) bd.innerHTML=`🗑 ${t('discard')}`;
+  const bl=document.getElementById('btn-leave');
+  if(bl) bl.textContent=t('leaveShop');
+  const lb=document.getElementById('btn-lang');
+  if(lb) lb.textContent=CURR_LANG==='zh'?'EN':'中文';
+  // Counter labels
+  const cl=document.querySelectorAll('.clbl');
+  if(cl.length>=2){
+    cl[0].textContent=t('labelHands'); cl[1].textContent=t('labelDiscards');
+  }
+  // Difficulty screen title
+  const dt=document.getElementById('diff-title'); if(dt) dt.textContent=t('diffTitle');
+  const ds=document.getElementById('diff-subtitle'); if(ds) ds.textContent=t('diffSubtitle');
+  // Win screen
+  const wt=document.getElementById('win-title'); if(wt) wt.textContent=t('winTitle');
+  const wr=document.getElementById('btn-restart-win'); if(wr) wr.textContent=t('winRestart');
+  // Gameover screen
+  const gt=document.getElementById('go-title'); if(gt) gt.textContent=t('goTitle');
+  const gr=document.getElementById('btn-restart'); if(gr) gr.textContent=t('goRestart');
+}
 document.getElementById('jd-close').addEventListener('click',()=>{
   document.getElementById('joker-detail').style.display='none';
 });
