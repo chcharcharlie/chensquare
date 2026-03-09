@@ -650,7 +650,7 @@ const STRINGS = {
     startBtn:'⚔️ 开始！',helpBtn:'❓ 游戏规则',
     handsLbl:'出牌次数',discardsLbl:'弃牌次数',
     diffTarget:'目标分',diffMoney:'初始金',diffHands:'出牌',diffDiscards:'弃牌',diffTimes:'次',
-    diffRed:'凭证随机不可用',diffBlack:'小丑牌无法出售',
+    diffRed:'小盲注不给奖励金',diffBlack:'30%概率买到永恒小丑',
     shopSec1:'🃏 小丑牌',shopSec2:'🪐 行星牌（升级牌型）',shopSec3:'🎫 凭证（永久升级）',
     rerollBtn:'重置商品',
     badgeJ:'小丑',badgeP:'行星',badgeV:'凭证',
@@ -713,7 +713,7 @@ const STRINGS = {
     scHeader:'💰 Sell Joker',scCancel:'Cancel',scSellBtn:'Sell',scSellFor:'Sell for:',
     pcHeader:'🪐 Planet Upgrade',pcCurLabel:'Current',pcNewLabel:'Upgraded',pcBuyBtn:'Buy',pcHandLabel:'Upgrades: ',
     winSub:'You beat all 8 Antes!',
-    diffRed:'Vouchers randomly unavailable',diffBlack:'Jokers cannot be sold',
+    diffRed:'Small Blind gives no reward',diffBlack:'30% chance of Eternal Jokers',
     sellJokerSec:'💰 Sell Jokers',
     diffTitle:'Choose Difficulty',diffSubtitle:'Higher difficulty = higher score targets',
     helpTitle:'How to Play',
@@ -741,8 +741,8 @@ const BLIND_TARGETS_BASE = [
 const DIFFICULTIES = [
   { id:0, name:'新手',   name_en:'Beginner',    stake:'Beginner',    emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
   { id:1, name:'标准',   name_en:'Standard',    stake:'White Stake', emoji:'⚔️', mult:1.0, money:4, hands:4, discards:3 },
-  { id:2, name:'红注',   name_en:'Red Stake',   stake:'Red Stake',   emoji:'🔴', mult:1.0, money:4, hands:4, discards:2, randomVoucher:true },
-  { id:3, name:'黑注',   name_en:'Black Stake', stake:'Black Stake', emoji:'⬛', mult:1.0, money:4, hands:3, discards:2, noSell:true },
+  { id:2, name:'红注',   name_en:'Red Stake',   stake:'Red Stake',   emoji:'🔴', mult:1.0, money:4, hands:4, discards:2, noSmallReward:true },
+  { id:3, name:'黑注',   name_en:'Black Stake', stake:'Black Stake', emoji:'⬛', mult:1.0, money:4, hands:3, discards:2, noSmallReward:true, eternalChance:0.3 },
 ];
 
 function getBlindTarget(ante, blind) {
@@ -1217,12 +1217,12 @@ function genShop(){
   const numPlanets=Math.min(PLANET_DEFS.length, 2+extraP);
   const planetDiscount=(G.voucherEffects?.planetDiscount||0);
   G.shopItems={
-    jokers:avail.slice(0,2+extraJ).map(j=>({...j,sold:false,cost:Math.max(1,j.cost-discount)})),
+    jokers:avail.slice(0,2+extraJ).map(j=>{
+      const ec=DIFFICULTIES[G.difficulty??1].eternalChance||0;
+      return {...j, sold:false, cost:Math.max(1,j.cost-discount), eternal: ec>0 && rng()<ec};
+    }),
     planets:planets.slice(0,numPlanets).map(p=>({...p,sold:false,cost:Math.max(1,3-discount-planetDiscount)})),
     voucher: (()=>{
-      const diff=DIFFICULTIES[G.difficulty??1];
-      // Red Stake: voucher randomly unavailable (~50% chance each ante)
-      if(diff.randomVoucher && rng()<0.5) return null;
       const v=getAvailableVoucher(G);
       return v ? {...v, sold:false, cost:Math.max(1,10-discount)} : null;
     })()
@@ -1344,10 +1344,15 @@ function openJokerDetail(def, idx){
   // Price line: buy cost + sell value (hide sell price if Black Stake noSell rule)
   const sv=Math.max(1,Math.ceil(def.cost/2));
   const priceEl=document.getElementById('jd-price');
-  const noSell=DIFFICULTIES[G.difficulty??1]?.noSell;
-  if(priceEl) priceEl.textContent=noSell
-    ?(CURR_LANG==='en'?`Buy: $${def.cost}  ·  No selling`:`买价：$${def.cost}  ·  无法出售`)
-    :(CURR_LANG==='en'?`Buy: $${def.cost}  ·  Sell: $${sv}`:`买价：$${def.cost}  ·  售价：$${sv}`);
+  // Check if this joker (in hand) is eternal
+  const jEntry = _detailJokerIdx>=0 ? G.jokers[_detailJokerIdx] : null;
+  const isEternal = jEntry?.eternal;
+  if(priceEl){
+    const sellPart=isEternal
+      ?(CURR_LANG==='en'?`Sell: $${sv} 🔒 Eternal`:`售价：$${sv} 🔒 永恒`)
+      :(CURR_LANG==='en'?`Sell: $${sv}`:`售价：$${sv}`);
+    priceEl.textContent=CURR_LANG==='en'?`Buy: $${def.cost}  ·  ${sellPart}`:`买价：$${def.cost}  ·  ${sellPart}`;
+  }
   // Show/hide move buttons based on position
   const total=G.jokers.length;
   const lBtn=document.getElementById('jd-move-left');
@@ -1546,7 +1551,8 @@ function renderShopItems(){
     const el=document.createElement('div');
     el.className='shop-item'+(item.sold?' sold':disabled?' cant-afford':'');
     const statusTxt=item.sold?t('sold'):isOwned?t('owned'):full?t('slotFull'):'$'+item.cost;
-    el.innerHTML=`<span class="badge badge-j">${t('badgeJ')}</span><div class="iname">${tDef(item,'name')}</div><div class="idesc">${tDef(item,'desc')}</div><div class="icost">${statusTxt}</div>`;
+    const eternalBadge=item.eternal?`<span style="font-size:10px;color:#cc88ff;margin-left:4px;">🔒 ${CURR_LANG==='en'?'Eternal':'永恒'}</span>`:'';
+    el.innerHTML=`<span class="badge badge-j">${t('badgeJ')}</span><div class="iname">${tDef(item,'name')}${eternalBadge}</div><div class="idesc">${tDef(item,'desc')}</div><div class="icost">${statusTxt}</div>`;
     if(!disabled) el.addEventListener('click',()=>buyJoker(item));
     jc.appendChild(el);
   }
@@ -1584,33 +1590,28 @@ function renderShopItems(){
   const rc=G.shopRerollCost||5;
   document.getElementById('btn-reroll').textContent=`${t('rerollBtn')} ($${rc})`;
   document.getElementById('btn-reroll').disabled=G.money<rc;
-  // Sell section — hidden for Black Stake (noSell rule)
-  const diff=DIFFICULTIES[G.difficulty??1];
+  // Sell section — Eternal jokers cannot be sold
   const sellSec=document.querySelector('#shop-sell')?.closest('.shop-sec');
-  if(diff.noSell){
-    if(sellSec) sellSec.style.display='none';
+  if(sellSec) sellSec.style.display='';
+  const sh4=document.getElementById('shop-h4'); if(sh4) sh4.textContent=t('sellJokerSec');
+  const sc2=document.getElementById('shop-sell'); sc2.innerHTML='';
+  const sellableJokers=G.jokers.map((jj,i)=>({jj,i})).filter(({jj})=>!jj.eternal);
+  if(sellableJokers.length===0){
+    const el=document.createElement('div');
+    el.className='shop-item sold';
+    el.innerHTML=`<div class="iname" style="color:#888">${CURR_LANG==='en'?'No jokers to sell':'暂无小丑牌可卖'}</div>`;
+    sc2.appendChild(el);
   } else {
-    if(sellSec) sellSec.style.display='';
-    const sh4=document.getElementById('shop-h4'); if(sh4) sh4.textContent=t('sellJokerSec');
-    const sc2=document.getElementById('shop-sell'); sc2.innerHTML='';
-    if(G.jokers.length===0){
+    for(const {jj,i} of sellableJokers){
+      const def=JOKER_DEFS.find(d=>d.id===jj.id);
+      if(!def) continue;
+      const sv=Math.max(1,Math.ceil(def.cost/2));
       const el=document.createElement('div');
-      el.className='shop-item sold';
-      el.innerHTML=`<div class="iname" style="color:#888">${CURR_LANG==='en'?'No jokers to sell':'暂无小丑牌可卖'}</div>`;
+      el.className='shop-item';
+      el.style.borderColor='#8b4513';
+      el.innerHTML=`<span class="badge" style="background:#8b4513;color:#ffd">💰 ${CURR_LANG==='en'?'Sell':'售出'}</span><div class="iname">${tDef(def,'name')}</div><div class="idesc">${tDef(def,'desc')}</div><div class="icost" style="color:#ffd700">+$${sv}</div>`;
+      el.addEventListener('click',()=>sellJoker(i));
       sc2.appendChild(el);
-    } else {
-      for(let i=0;i<G.jokers.length;i++){
-        const jj=G.jokers[i];
-        const def=JOKER_DEFS.find(d=>d.id===jj.id);
-        if(!def) continue;
-        const sv=Math.max(1,Math.ceil(def.cost/2));
-        const el=document.createElement('div');
-        el.className='shop-item';
-        el.style.borderColor='#8b4513';
-        el.innerHTML=`<span class="badge" style="background:#8b4513;color:#ffd">💰 ${CURR_LANG==='en'?'Sell':'售出'}</span><div class="iname">${tDef(def,'name')}</div><div class="idesc">${tDef(def,'desc')}</div><div class="icost" style="color:#ffd700">+$${sv}</div>`;
-        el.addEventListener('click',()=>sellJoker(i));
-        sc2.appendChild(el);
-      }
     }
   }
 }
@@ -1659,6 +1660,7 @@ function confirmBuyJokerItem(item){
   const def=JOKER_DEFS.find(d=>d.id===item.id);
   const entry={id:item.id};
   if(def?.dynamic) entry.val=def.initVal??0;
+  if(item.eternal) entry.eternal=true; // Black Stake: preserve eternal flag
   G.jokers.push(entry);
 }
 let _pendingJoker = null;
@@ -2070,7 +2072,10 @@ function afterScoring(){
       if(G.jokers[popcornIdx].val===0) G.jokers.splice(popcornIdx,1);
     }
     const interest = Math.min(5, Math.floor(G.money/5));
-    const blindBonus = [3,4,5][G.blind]; // Small=$3, Big=$4, Boss=$5
+    // Red Stake: Small Blind gives no reward money
+    const diff=DIFFICULTIES[G.difficulty??1];
+    const blindBase=[3,4,5][G.blind]; // Small=$3, Big=$4, Boss=$5
+    const blindBonus=(diff.noSmallReward && G.blind===0) ? 0 : blindBase;
     G.money += blindBonus + G.handsLeft + interest;
     if(G.blind===2){
       if(G.ante>=8){
@@ -2281,8 +2286,8 @@ function renderDifficultyScreen(){
         <span>${t('diffMoney')} <b class="${moneyCls}">$${d.money}</b></span>
         <span>${t('diffHands')} <b class="${hcl}">${d.hands}${times}</b></span>
         <span>${t('diffDiscards')} <b class="${dcl}">${d.discards}${times}</b></span>
-        ${d.randomVoucher?`<span style="color:#ff9944;font-size:10px;margin-top:2px;">⚠ ${t('diffRed')}</span>`:''}
-        ${d.noSell?`<span style="color:#cc44ff;font-size:10px;margin-top:2px;">⚠ ${t('diffBlack')}</span>`:''}
+        ${d.noSmallReward?`<span style="color:#ff9944;font-size:10px;margin-top:2px;">⚠ ${t('diffRed')}</span>`:''}
+        ${d.eternalChance?`<span style="color:#cc88ff;font-size:10px;margin-top:2px;">🔒 ${t('diffBlack')}</span>`:''}
       </div>`;
     cards.appendChild(el);
   });
