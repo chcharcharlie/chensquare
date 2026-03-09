@@ -48,6 +48,10 @@ body {
 .card-suit { font-size: 26px; line-height: 1; }
 .card-rank-bot { font-size: 16px; font-weight: bold; line-height: 1; align-self: flex-end; transform: rotate(180deg); }
 .card-bonus-badge { position:absolute; bottom:3px; left:3px; font-size:9px; font-weight:bold; background:#1a5e1a; color:#88ff88; border-radius:4px; padding:1px 4px; line-height:1.3; pointer-events:none; z-index:2; }
+.card.reordering { border-color:#ff9900; box-shadow:0 0 14px rgba(255,153,0,0.7); transform:translateY(-10px); }
+.card-reorder-overlay { position:absolute; inset:0; border-radius:9px; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:space-between; padding:0 4px; z-index:5; }
+.card-reorder-btn { background:rgba(255,153,0,0.85); border:none; border-radius:4px; color:#fff; font-size:13px; font-weight:bold; width:22px; height:26px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.card-reorder-btn:disabled { opacity:0.25; cursor:not-allowed; }
 
 /* BUTTONS */
 .btn { padding: 10px 22px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.15s; }
@@ -1339,13 +1343,48 @@ function openJokerDetail(def, idx){
   document.getElementById('joker-detail').style.display='flex';
 }
 
+function moveHandCard(card, dir){
+  const idx=G.hand.indexOf(card);
+  const newIdx=idx+dir;
+  if(newIdx<0||newIdx>=G.hand.length) return;
+  G.hand.splice(idx,1);
+  G.hand.splice(newIdx,0,card);
+  G._reorderCard=card; // keep reorder mode active
+  renderHand();
+}
+
 function renderHand(){
   const c=document.getElementById('card-area');
   c.innerHTML='';
   for(const card of G.hand){
     const el=mkCard(card);
+    const isReordering=(G._reorderCard===card);
+    if(isReordering){
+      el.classList.add('reordering');
+      const idx=G.hand.indexOf(card);
+      const overlay=document.createElement('div');
+      overlay.className='card-reorder-overlay';
+      const btnL=document.createElement('button');
+      btnL.className='card-reorder-btn'; btnL.textContent='◀';
+      btnL.disabled=idx===0;
+      btnL.addEventListener('click',(e)=>{ e.stopPropagation(); moveHandCard(card,-1); });
+      const btnR=document.createElement('button');
+      btnR.className='card-reorder-btn'; btnR.textContent='▶';
+      btnR.disabled=idx===G.hand.length-1;
+      btnR.addEventListener('click',(e)=>{ e.stopPropagation(); moveHandCard(card,1); });
+      overlay.appendChild(btnL); overlay.appendChild(btnR);
+      el.appendChild(overlay);
+    }
+    let pressTimer=null;
+    el.addEventListener('pointerdown',()=>{
+      if(G.state!=='PLAYING') return;
+      pressTimer=setTimeout(()=>{ G._reorderCard=card; renderHand(); },500);
+    });
+    el.addEventListener('pointerup',()=>clearTimeout(pressTimer));
+    el.addEventListener('pointermove',()=>clearTimeout(pressTimer));
     el.addEventListener('click',()=>{
       if(G.state!=='PLAYING') return;
+      if(G._reorderCard){ G._reorderCard=null; renderHand(); return; } // exit reorder mode
       const sel=G.hand.filter(c=>c.sel);
       if(!card.sel&&sel.length>=5) return;
       card.sel=!card.sel;
