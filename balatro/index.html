@@ -161,7 +161,7 @@ body {
 .badge-v { background:#1a001a; color:#cc66ff; border:1px solid #cc66ff; }
 
 /* DIFFICULTY SELECT */
-#screen-difficulty { align-items:center; justify-content:center; gap:20px; flex-direction:column; }
+#screen-difficulty { align-items:center; justify-content:flex-start; gap:16px; flex-direction:column; overflow-y:auto; padding:60px 16px 24px; }
 #screen-difficulty h1 { font-size:28px; font-weight:900; color:#ffd700; text-shadow:0 0 20px rgba(255,215,0,0.4); }
 #screen-difficulty p { font-size:13px; color:#8888aa; text-align:center; max-width:380px; }
 .diff-cards { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; max-width:600px; }
@@ -745,12 +745,12 @@ const BLIND_TARGETS_GREEN = [
 ];
 
 const DIFFICULTIES = [
-  { id:0, name:'新手', name_en:'Beginner', stake:'Beginner',    emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
+  { id:0, name:'新手', name_en:'Beginner', stake:'Beginner',    emoji:'🌱', mult:0.6, money:6, hands:4, discards:4 },
   { id:1, name:'标准', name_en:'Standard', stake:'White Stake', emoji:'⚔️', mult:1.0, money:4, hands:4, discards:3 },
-  { id:2, name:'进阶', name_en:'Advanced', stake:'Red Stake',   emoji:'🔴', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true },
-  { id:3, name:'困难', name_en:'Hard',     stake:'Green Stake', emoji:'🟢', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true, greenTargets:true },
-  { id:4, name:'专家', name_en:'Expert',   stake:'Black Stake', emoji:'⬛', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true, greenTargets:true, eternalChance:0.3 },
-  { id:5, name:'地狱', name_en:'Hell',     stake:'Blue Stake',  emoji:'🔵', mult:1.0, money:4, hands:4, discards:2, noSmallReward:true, greenTargets:true, eternalChance:0.3 },
+  { id:2, name:'进阶', name_en:'Advanced', stake:'Red Stake',   emoji:'🔥', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true },
+  { id:3, name:'困难', name_en:'Hard',     stake:'Green Stake', emoji:'💀', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true, greenTargets:true },
+  { id:4, name:'专家', name_en:'Expert',   stake:'Black Stake', emoji:'🌑', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true, greenTargets:true, eternalChance:0.3 },
+  { id:5, name:'地狱', name_en:'Hell',     stake:'Blue Stake',  emoji:'👹', mult:1.0, money:4, hands:4, discards:2, noSmallReward:true, greenTargets:true, eternalChance:0.3 },
 ];
 
 function getBlindTarget(ante, blind) {
@@ -2274,31 +2274,35 @@ document.getElementById('btn-lang-diff').addEventListener('click', toggleLang);
 function renderDifficultyScreen(){
   const en=CURR_LANG==='en';
   const dt=document.getElementById('diff-title'); if(dt) dt.textContent=t('diffTitle');
-  const ds=document.getElementById('diff-subtitle'); if(ds) ds.textContent=t('diffSubtitle');
+  // Remove subtitle — rules are shown inline on each card
+  const ds=document.getElementById('diff-subtitle'); if(ds) ds.textContent='';
   const cards=document.getElementById('diff-cards');
   if(!cards) return;
+  // Standard (id=1) is the reference: money=$4, hands=4, discards=3, mult=×1, no greenTargets
+  const ref={money:4, hands:4, discards:3, greenTargets:false};
   cards.innerHTML='';
   DIFFICULTIES.forEach((d,i)=>{
-    const hcl=i===0?'ds-good':i<=1?'':i>=4?'ds-bad':'';
-    const dcl=i===0?'ds-good':i<=1?'':i>=3?'ds-bad':'';
-    const multCls=i===0?'ds-good':i<=2?'':i>=3?'ds-bad':'';
-    const moneyCls=i===0?'ds-good':i<=1?'':`ds-bad`;
+    // Colour only when value differs from Standard (reference)
+    const moneyCls  = d.money   !== ref.money    ? (d.money   > ref.money   ? 'ds-good' : 'ds-bad') : '';
+    const handsCls  = d.hands   !== ref.hands    ? (d.hands   > ref.hands   ? 'ds-good' : 'ds-bad') : '';
+    const discCls   = d.discards!== ref.discards ? (d.discards> ref.discards? 'ds-good' : 'ds-bad') : '';
+    const multCls   = d.greenTargets && !ref.greenTargets ? 'ds-bad' : (d.mult < 1 ? 'ds-good' : '');
+    const targetLbl = d.greenTargets ? (en?'↑ Higher':'↑ 提高') : (en?'Standard':'标准');
     const times=t('diffTimes');
     const el=document.createElement('div');
     el.className=`diff-card diff-${i}`;
     el.onclick=()=>startWithDifficulty(i);
     el.innerHTML=`<div class="diff-emoji">${d.emoji}</div>
       <div class="diff-name">${tDef(d,'name')}</div>
-      <div class="diff-stake">${d.stake||['Beginner','White Stake','Red Stake','Black Stake'][i]}</div>
+      <div class="diff-stake">${d.stake}</div>
       <div class="diff-stats">
-        <span>${t('diffTarget')} <b class="${multCls}">${d.greenTargets?(CURR_LANG==='en'?'Green tier':'Green档'):'×'+d.mult}</b></span>
+        <span>${t('diffTarget')} <b class="${multCls}">${d.mult<1?'×'+d.mult:targetLbl}</b></span>
         <span>${t('diffMoney')} <b class="${moneyCls}">$${d.money}</b></span>
-        <span>${t('diffHands')} <b class="${hcl}">${d.hands}${times}</b></span>
-        <span>${t('diffDiscards')} <b class="${dcl}">${d.discards}${times}</b></span>
+        <span>${t('diffHands')} <b class="${handsCls}">${d.hands}${times}</b></span>
+        <span>${t('diffDiscards')} <b class="${discCls}">${d.discards}${times}</b></span>
         ${d.noSmallReward?`<span style="color:#ff7744;font-size:10px;margin-top:2px;">⚠ ${t('diffRed')}</span>`:''}
         ${d.greenTargets?`<span style="color:#44cc88;font-size:10px;margin-top:2px;">📈 ${t('diffGreen')}</span>`:''}
         ${d.eternalChance?`<span style="color:#cc88ff;font-size:10px;margin-top:2px;">🔒 ${t('diffBlack')}</span>`:''}
-        ${d.discards<3&&d.greenTargets?`<span style="color:#4488ff;font-size:10px;margin-top:2px;">🗑 ${t('diffBlue')}</span>`:''}
       </div>`;
     cards.appendChild(el);
   });
