@@ -650,6 +650,7 @@ const STRINGS = {
     startBtn:'⚔️ 开始！',helpBtn:'❓ 游戏规则',
     handsLbl:'出牌次数',discardsLbl:'弃牌次数',
     diffTarget:'目标分',diffMoney:'初始金',diffHands:'出牌',diffDiscards:'弃牌',diffTimes:'次',
+    diffRed:'凭证随机不可用',diffBlack:'小丑牌无法出售',
     shopSec1:'🃏 小丑牌',shopSec2:'🪐 行星牌（升级牌型）',shopSec3:'🎫 凭证（永久升级）',
     rerollBtn:'重置商品',
     badgeJ:'小丑',badgeP:'行星',badgeV:'凭证',
@@ -712,6 +713,7 @@ const STRINGS = {
     scHeader:'💰 Sell Joker',scCancel:'Cancel',scSellBtn:'Sell',scSellFor:'Sell for:',
     pcHeader:'🪐 Planet Upgrade',pcCurLabel:'Current',pcNewLabel:'Upgraded',pcBuyBtn:'Buy',pcHandLabel:'Upgrades: ',
     winSub:'You beat all 8 Antes!',
+    diffRed:'Vouchers randomly unavailable',diffBlack:'Jokers cannot be sold',
     sellJokerSec:'💰 Sell Jokers',
     diffTitle:'Choose Difficulty',diffSubtitle:'Higher difficulty = higher score targets',
     helpTitle:'How to Play',
@@ -737,10 +739,10 @@ const BLIND_TARGETS_BASE = [
 ];
 
 const DIFFICULTIES = [
-  { id:0, name:'新手',  name_en:'Beginner',  stake:'Beginner',    emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
-  { id:1, name:'标准',  name_en:'Standard',  stake:'White Stake', emoji:'⚔️', mult:1.0, money:4, hands:3, discards:3 },
-  { id:2, name:'困难',  name_en:'Hard',      stake:'Red Stake',   emoji:'🔥', mult:1.5, money:3, hands:3, discards:2 },
-  { id:3, name:'极难',  name_en:'Nightmare', stake:'Black Stake', emoji:'💀', mult:2.5, money:2, hands:2, discards:1 },
+  { id:0, name:'新手',   name_en:'Beginner',    stake:'Beginner',    emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
+  { id:1, name:'标准',   name_en:'Standard',    stake:'White Stake', emoji:'⚔️', mult:1.0, money:4, hands:4, discards:3 },
+  { id:2, name:'红注',   name_en:'Red Stake',   stake:'Red Stake',   emoji:'🔴', mult:1.0, money:4, hands:4, discards:2, randomVoucher:true },
+  { id:3, name:'黑注',   name_en:'Black Stake', stake:'Black Stake', emoji:'⬛', mult:1.0, money:4, hands:3, discards:2, noSell:true },
 ];
 
 function getBlindTarget(ante, blind) {
@@ -1217,7 +1219,13 @@ function genShop(){
   G.shopItems={
     jokers:avail.slice(0,2+extraJ).map(j=>({...j,sold:false,cost:Math.max(1,j.cost-discount)})),
     planets:planets.slice(0,numPlanets).map(p=>({...p,sold:false,cost:Math.max(1,3-discount-planetDiscount)})),
-    voucher: getAvailableVoucher(G) ? {...getAvailableVoucher(G), sold:false, cost:Math.max(1,10-discount)} : null
+    voucher: (()=>{
+      const diff=DIFFICULTIES[G.difficulty??1];
+      // Red Stake: voucher randomly unavailable (~50% chance each ante)
+      if(diff.randomVoucher && rng()<0.5) return null;
+      const v=getAvailableVoucher(G);
+      return v ? {...v, sold:false, cost:Math.max(1,10-discount)} : null;
+    })()
   };
 }
 
@@ -1333,12 +1341,13 @@ function openJokerDetail(def, idx){
   if(el){ el.style.setProperty('--jcol',def.col||'#ffd700'); el.textContent=def.sym||'?'; }
   document.getElementById('jd-name').textContent=tDef(def,'name');
   document.getElementById('jd-desc').textContent=tDef(def,'desc');
-  // Price line: buy cost + sell value
+  // Price line: buy cost + sell value (hide sell price if Black Stake noSell rule)
   const sv=Math.max(1,Math.ceil(def.cost/2));
   const priceEl=document.getElementById('jd-price');
-  if(priceEl) priceEl.textContent=CURR_LANG==='en'
-    ?`Buy: $${def.cost}  ·  Sell: $${sv}`
-    :`买价：$${def.cost}  ·  售价：$${sv}`;
+  const noSell=DIFFICULTIES[G.difficulty??1]?.noSell;
+  if(priceEl) priceEl.textContent=noSell
+    ?(CURR_LANG==='en'?`Buy: $${def.cost}  ·  No selling`:`买价：$${def.cost}  ·  无法出售`)
+    :(CURR_LANG==='en'?`Buy: $${def.cost}  ·  Sell: $${sv}`:`买价：$${def.cost}  ·  售价：$${sv}`);
   // Show/hide move buttons based on position
   const total=G.jokers.length;
   const lBtn=document.getElementById('jd-move-left');
@@ -1575,26 +1584,33 @@ function renderShopItems(){
   const rc=G.shopRerollCost||5;
   document.getElementById('btn-reroll').textContent=`${t('rerollBtn')} ($${rc})`;
   document.getElementById('btn-reroll').disabled=G.money<rc;
-  // Sell section
-  const sh4=document.getElementById('shop-h4'); if(sh4) sh4.textContent=t('sellJokerSec');
-  const sc2=document.getElementById('shop-sell'); sc2.innerHTML='';
-  if(G.jokers.length===0){
-    const el=document.createElement('div');
-    el.className='shop-item sold';
-    el.innerHTML=`<div class="iname" style="color:#888">${CURR_LANG==='en'?'No jokers to sell':'暂无小丑牌可卖'}</div>`;
-    sc2.appendChild(el);
+  // Sell section — hidden for Black Stake (noSell rule)
+  const diff=DIFFICULTIES[G.difficulty??1];
+  const sellSec=document.querySelector('#shop-sell')?.closest('.shop-sec');
+  if(diff.noSell){
+    if(sellSec) sellSec.style.display='none';
   } else {
-    for(let i=0;i<G.jokers.length;i++){
-      const jj=G.jokers[i];
-      const def=JOKER_DEFS.find(d=>d.id===jj.id);
-      if(!def) continue;
-      const sv=Math.max(1,Math.ceil(def.cost/2));
+    if(sellSec) sellSec.style.display='';
+    const sh4=document.getElementById('shop-h4'); if(sh4) sh4.textContent=t('sellJokerSec');
+    const sc2=document.getElementById('shop-sell'); sc2.innerHTML='';
+    if(G.jokers.length===0){
       const el=document.createElement('div');
-      el.className='shop-item';
-      el.style.borderColor='#8b4513';
-      el.innerHTML=`<span class="badge" style="background:#8b4513;color:#ffd">💰 ${CURR_LANG==='en'?'Sell':'售出'}</span><div class="iname">${tDef(def,'name')}</div><div class="idesc">${tDef(def,'desc')}</div><div class="icost" style="color:#ffd700">+$${sv}</div>`;
-      el.addEventListener('click',()=>sellJoker(i));
+      el.className='shop-item sold';
+      el.innerHTML=`<div class="iname" style="color:#888">${CURR_LANG==='en'?'No jokers to sell':'暂无小丑牌可卖'}</div>`;
       sc2.appendChild(el);
+    } else {
+      for(let i=0;i<G.jokers.length;i++){
+        const jj=G.jokers[i];
+        const def=JOKER_DEFS.find(d=>d.id===jj.id);
+        if(!def) continue;
+        const sv=Math.max(1,Math.ceil(def.cost/2));
+        const el=document.createElement('div');
+        el.className='shop-item';
+        el.style.borderColor='#8b4513';
+        el.innerHTML=`<span class="badge" style="background:#8b4513;color:#ffd">💰 ${CURR_LANG==='en'?'Sell':'售出'}</span><div class="iname">${tDef(def,'name')}</div><div class="idesc">${tDef(def,'desc')}</div><div class="icost" style="color:#ffd700">+$${sv}</div>`;
+        el.addEventListener('click',()=>sellJoker(i));
+        sc2.appendChild(el);
+      }
     }
   }
 }
@@ -2163,7 +2179,7 @@ function renderHelpContent(){
   if(en){
     html += sec('🎯 Goal','<p>Select 1–5 cards and play poker hands to score points. Beat the target before running out of hands to advance!</p>');
     html += sec('🏟️ Structure','<p><b>Ante:</b> 8 Antes total — clear all 8 to win.</p><p><b>Each Ante has 3 blinds:</b></p>'+ul('🟡 <b>Small Blind</b> — baseline target','🟠 <b>Big Blind</b> — ×1.5 target','🔴 <b>Boss Blind</b> — ×2 target + a special restriction')+'<p>After the Boss Blind, visit the <b>🛒 Shop</b>.</p>');
-    html += sec('🃏 Playing a Hand',ul('8 cards dealt per round','Tap to select (max 5), then press <b>Play</b>','Hands / Discards per round depend on difficulty (Beginner 4/4, Standard 3/3, Hard 3/2, Nightmare 2/1)','Discard = swap selected cards for new ones (no hand cost)','Run out of hands without hitting target → Game Over 💀'));
+    html += sec('🃏 Playing a Hand',ul('8 cards dealt per round','Tap to select (max 5), then press <b>Play</b>','Hands / Discards per round depend on difficulty (Beginner 4/4, Standard 4/3, Red 4/2, Black 3/2)','Discard = swap selected cards for new ones (no hand cost)','Run out of hands without hitting target → Game Over 💀'));
     html += sec('📊 Scoring Formula','<p style="font-size:15px;text-align:center;background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;margin:8px 0;">Score = <span style="color:#4488ff">( Hand Chips + <b>all</b> played card values )</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; × <span style="color:#ff6644">( Hand Mult + Joker bonuses )</span></p><p><b>All</b> played cards contribute Chips (including kickers). J/Q/K=10, A=11.</p>');
     html += sec('♠ Hand Types (low → high)','<table class="h-table"><tr><th>Hand</th><th>Description</th><th>Chips</th><th>Mult</th></tr><tr><td>High Card</td><td>Any 1 card</td><td>5</td><td>×1</td></tr><tr><td>Pair</td><td>2 of a rank</td><td>10</td><td>×2</td></tr><tr><td>Two Pair</td><td>Two different pairs</td><td>20</td><td>×2</td></tr><tr><td>Three of a Kind</td><td>3 of a rank</td><td>30</td><td>×3</td></tr><tr><td>Straight</td><td>5 consecutive ranks</td><td>30</td><td>×4</td></tr><tr><td>Flush</td><td>5 same suit</td><td>35</td><td>×4</td></tr><tr><td>Full House</td><td>3-of-a-kind + Pair</td><td>40</td><td>×4</td></tr><tr><td>Four of a Kind</td><td>4 of a rank</td><td>60</td><td>×7</td></tr><tr><td>Straight Flush</td><td>Straight + Flush</td><td>100</td><td>×8</td></tr></table>');
     html += sec('💰 Rewards & Interest',ul('Round reward: Small +$3, Big +$4, Boss +$5, plus $1 per remaining hand','<b>Interest:</b> earn $1 per $5 held at end of round (max $5 interest)','Tip: save money to earn interest!'));
@@ -2175,7 +2191,7 @@ function renderHelpContent(){
   } else {
     html += sec('🎯 目标','<p>每局选 1~5 张牌出牌，打出扑克牌型得分。在出牌次数用完前，累计分数超过目标 → 过关！</p>');
     html += sec('🏟️ 游戏结构','<p><b>Ante（关卡）</b>：共 8 个 Ante，通关全部 8 个即胜利。</p><p><b>每个 Ante 有 3 个盲注：</b></p>'+ul('🟡 <b>小盲注</b> — 最低目标分数','🟠 <b>大盲注</b> — 目标 ×1.5','🔴 <b>Boss 盲注</b> — 目标 ×2，还有特殊限制')+'<p>打完 Boss 盲注后进入 <b>🛒 商店</b>。</p>');
-    html += sec('🃏 每局出牌',ul('每局发 8 张牌到手牌','点击选中（最多 5 张），按 <b>出牌</b> 打出','出牌/弃牌次数视难度而定（新手 4/4，标准 3/3，困难 3/2，极难 2/1）','弃牌 = 丢掉选中的牌补充新牌（不消耗出牌次数）','出完全部次数还没达到目标 → 游戏失败 💀'));
+    html += sec('🃏 每局出牌',ul('每局发 8 张牌到手牌','点击选中（最多 5 张），按 <b>出牌</b> 打出','出牌/弃牌次数视难度而定（新手 4/4，标准 4/3，红注 4/2，黑注 3/2）','弃牌 = 丢掉选中的牌补充新牌（不消耗出牌次数）','出完全部次数还没达到目标 → 游戏失败 💀'));
     html += sec('📊 计分公式','<p style="font-size:15px;text-align:center;background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;margin:8px 0;">得分 = <span style="color:#4488ff">（牌型基础筹码 + <b>所有</b>打出牌的点数之和）</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; × <span style="color:#ff6644">（牌型基础倍率 + 小丑加成）</span></p><p>打出的<b>所有</b>牌都贡献筹码，J/Q/K=10，A=11。</p>');
     html += sec('♠ 牌型与基础分（从低到高）','<table class="h-table"><tr><th>牌型</th><th>说明</th><th>筹码</th><th>倍率</th></tr><tr><td>高牌</td><td>任意1张</td><td>5</td><td>×1</td></tr><tr><td>一对</td><td>2张同点数</td><td>10</td><td>×2</td></tr><tr><td>两对</td><td>两个不同对子</td><td>20</td><td>×2</td></tr><tr><td>三条</td><td>3张同点数</td><td>30</td><td>×3</td></tr><tr><td>顺子</td><td>5张连续点数</td><td>30</td><td>×4</td></tr><tr><td>同花</td><td>5张同花色</td><td>35</td><td>×4</td></tr><tr><td>葫芦</td><td>三条+一对</td><td>40</td><td>×4</td></tr><tr><td>四条</td><td>4张同点数</td><td>60</td><td>×7</td></tr><tr><td>同花顺</td><td>同花色+连续</td><td>100</td><td>×8</td></tr></table>');
     html += sec('💰 过关奖励 & 利息',ul('过关奖励：小盲 +$3，大盲 +$4，Boss盲 +$5，另加剩余出牌次数 × $1','<b>利息</b>：每存 $5 额外获得 $1（最多 $5 利息）','策略：别把钱花光，存钱滚利息！'));
@@ -2265,6 +2281,8 @@ function renderDifficultyScreen(){
         <span>${t('diffMoney')} <b class="${moneyCls}">$${d.money}</b></span>
         <span>${t('diffHands')} <b class="${hcl}">${d.hands}${times}</b></span>
         <span>${t('diffDiscards')} <b class="${dcl}">${d.discards}${times}</b></span>
+        ${d.randomVoucher?`<span style="color:#ff9944;font-size:10px;margin-top:2px;">⚠ ${t('diffRed')}</span>`:''}
+        ${d.noSell?`<span style="color:#cc44ff;font-size:10px;margin-top:2px;">⚠ ${t('diffBlack')}</span>`:''}
       </div>`;
     cards.appendChild(el);
   });
