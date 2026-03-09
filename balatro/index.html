@@ -1135,9 +1135,9 @@ function _applyJokerCopy(h, g, j, dir, depth=0){
   if(tDef.id==='J31') return _applyJokerCopy(h,g,target,'right',depth+1);
   if(tDef.id==='J39') return _applyJokerCopy(h,g,target,'left',depth+1);
   if(tDef.perCard){
-    // Sum perCard effects over all scored cards
+    // Use all played cards (h.cards), same as the original perCard joker in Step 2
     let ac=0,am=0,xm=1;
-    for(const card of h.sc){
+    for(const card of (h.cards||h.sc)){
       const r=tDef.perCard(card,h,g,target)||{};
       ac+=(r.ac||0); am+=(r.am||0); if(r.xm) xm*=r.xm;
     }
