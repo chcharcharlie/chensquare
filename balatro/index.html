@@ -86,20 +86,33 @@ body {
 .joker-card {
   border:2px solid var(--jcol,#ffd700); border-radius:9px;
   width:46px; min-width:46px; height:64px;
-  display:flex; flex-direction:column;
-  cursor:pointer; position:relative; overflow:visible;
+  display:flex; flex-direction:row; align-items:stretch;
+  cursor:default; position:relative; overflow:visible;
   transition:transform 0.15s, box-shadow 0.15s; flex-shrink:0;
   background:#0e0a00;
 }
-.joker-card:hover { transform:scale(1.06); box-shadow:0 4px 14px rgba(0,0,0,0.7), 0 0 8px var(--jcol,#ffd700); z-index:10; }
-.joker-card:active { transform:scale(0.96); }
+.joker-card:hover { box-shadow:0 4px 14px rgba(0,0,0,0.7), 0 0 8px var(--jcol,#ffd700); z-index:10; }
+.joker-card .j-body {
+  flex:1; display:flex; flex-direction:column; cursor:pointer;
+  min-width:0;
+}
+.joker-card .j-body:hover { transform:scale(1.04); }
 .joker-card .j-face {
   border-radius:7px 7px 0 0; background:var(--jcol,#555); flex:1;
   display:flex; align-items:center; justify-content:center;
-  font-size:24px; color:rgba(255,255,255,0.95); font-weight:bold; letter-spacing:-1px;
+  font-size:22px; color:rgba(255,255,255,0.95); font-weight:bold; letter-spacing:-1px;
   font-family:'Segoe UI Symbol','Apple Symbols','Arial Unicode MS',sans-serif;
 }
-.joker-card .j-name { height:22px; display:flex; align-items:center; justify-content:center; font-size:8px; color:#ffe88a; font-weight:bold; text-align:center; padding:0 3px; line-height:1.1; }
+.joker-card .j-name { height:20px; display:flex; align-items:center; justify-content:center; font-size:7.5px; color:#ffe88a; font-weight:bold; text-align:center; padding:0 2px; line-height:1.1; }
+/* Move arrows */
+.j-mv { display:flex; align-items:center; justify-content:center; width:14px; min-width:14px;
+  background:rgba(0,0,0,0.5); border:none; color:rgba(255,255,255,0.5); font-size:8px;
+  cursor:pointer; padding:0; transition:background 0.15s,color 0.15s; }
+.j-mv:hover { background:rgba(255,255,255,0.18); color:#fff; }
+.j-mv:active { background:rgba(255,255,255,0.35); }
+.j-mv-l { border-radius:7px 0 0 7px; }
+.j-mv-r { border-radius:0 7px 7px 0; }
+.j-mv-ph { width:14px; min-width:14px; display:block; }
 .joker-slot { border:2px dashed #2e2e4e; border-radius:9px; width:46px; min-width:46px; height:64px; display:flex; align-items:center; justify-content:center; color:#2e2e4e; font-size:18px; flex-shrink:0; }
 
 /* HAND TYPE */
@@ -303,6 +316,8 @@ body {
   #handlv-area { padding:5px 8px !important; }
   #handlv-area::-webkit-scrollbar { display:none; }
   .joker-card { width:38px; min-width:38px; height:54px; border-radius:7px; }
+  .j-mv { width:12px; min-width:12px; font-size:7px; }
+  .j-mv-ph { width:12px; min-width:12px; }
   .joker-card .j-face { font-size:17px; border-radius:5px 5px 0 0; }
   .joker-card .j-name { font-size:6px; height:16px; }
   .joker-slot { width:38px; min-width:38px; height:54px; border-radius:7px; font-size:14px; }
@@ -1120,16 +1135,22 @@ function renderJokers(){
   const c=document.getElementById('joker-slots');
   c.innerHTML='';
   const maxSlots = G.jokerSlots||5;
+  const total = G.jokers.length;
   for(let i=0;i<maxSlots;i++){
-    if(i<G.jokers.length){
+    if(i<total){
       const j=G.jokers[i];
       const def=JOKER_DEFS.find(d=>d.id===j.id);
       if(!def) continue;
       const el=document.createElement('div');
       el.className='joker-card pop-in';
       el.style.setProperty('--jcol', def.col||'#ffd700');
-      el.innerHTML=`<div class="j-face">${def.sym}</div><div class="j-name">${def.name}</div>`;
-      el.addEventListener('click',()=>openJokerDetail(def));
+      // Arrow buttons for reordering (only show when >1 joker)
+      const leftBtn  = i>0      ? `<button class="j-mv j-mv-l" data-idx="${i}" title="左移">◀</button>` : `<span class="j-mv-ph"></span>`;
+      const rightBtn = i<total-1 ? `<button class="j-mv j-mv-r" data-idx="${i}" title="右移">▶</button>` : `<span class="j-mv-ph"></span>`;
+      el.innerHTML=`${leftBtn}<div class="j-body"><div class="j-face">${def.sym}</div><div class="j-name">${def.name}</div></div>${rightBtn}`;
+      el.querySelector('.j-body').addEventListener('click',()=>openJokerDetail(def));
+      const lb=el.querySelector('.j-mv-l'); if(lb) lb.addEventListener('click',e=>{e.stopPropagation();moveJoker(i,-1);});
+      const rb=el.querySelector('.j-mv-r'); if(rb) rb.addEventListener('click',e=>{e.stopPropagation();moveJoker(i,+1);});
       c.appendChild(el);
     } else {
       const sl=document.createElement('div');
@@ -1138,6 +1159,16 @@ function renderJokers(){
       c.appendChild(sl);
     }
   }
+}
+
+function moveJoker(idx, dir){
+  const newIdx = idx + dir;
+  if(newIdx<0||newIdx>=G.jokers.length) return;
+  const tmp = G.jokers[idx];
+  G.jokers[idx] = G.jokers[newIdx];
+  G.jokers[newIdx] = tmp;
+  saveGame();
+  renderJokers();
 }
 
 function openJokerDetail(def){
@@ -1843,23 +1874,23 @@ if(loadGame()) {
 </script>
 
 <!-- Back to chensquare -->
-<a href="/" id="back-home" style="
+<style>
+#back-home {
   position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 9999;
+  top: 10px; left: 10px; z-index: 9999;
   background: rgba(13,13,26,0.85);
-  color: #7c6af7;
-  text-decoration: none;
-  font-family: system-ui, sans-serif;
-  font-size: 0.75rem;
-  padding: 5px 10px;
-  border-radius: 6px;
+  color: #7c6af7; text-decoration: none;
+  font-family: system-ui, sans-serif; font-size: 0.75rem;
+  padding: 5px 8px; border-radius: 6px;
   border: 1px solid rgba(124,106,247,0.3);
   backdrop-filter: blur(8px);
-  opacity: 0.5;
-  transition: opacity 0.2s;
-" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">← chensquare</a>
+  overflow: hidden; max-width: 22px; white-space: nowrap;
+  transition: max-width 0.25s ease, opacity 0.25s ease;
+  opacity: 0.4;
+}
+#back-home:hover { max-width: 120px; opacity: 1; }
+</style>
+<a href="/" id="back-home">← chensquare</a>
 
 </body>
 </html>
