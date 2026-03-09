@@ -361,7 +361,8 @@ body {
 
 <!-- DIFFICULTY SELECT -->
 <div id="screen-difficulty" class="screen">
-  <div style="position:absolute;top:14px;right:14px;">
+  <div style="position:absolute;top:14px;right:14px;display:flex;gap:8px;">
+    <button class="btn" id="btn-help-diff" style="background:rgba(255,255,255,0.08);color:#8888aa;padding:5px 10px;font-size:13px;border:1px solid #3a3a6a;">❓</button>
     <button class="btn" id="btn-lang-diff" style="background:rgba(255,255,255,0.1);color:#aaaacc;padding:5px 8px;font-size:12px;border:1px solid #3a3a6a;min-width:36px;">EN</button>
   </div>
   <h1>🃏 Balatro Lite</h1>
@@ -2222,6 +2223,7 @@ function openHelp(){ renderHelpContent(); document.getElementById('help-overlay'
 function closeHelp(){ document.getElementById('help-overlay').style.display='none'; }
 document.getElementById('btn-help').addEventListener('click', openHelp);
 document.getElementById('btn-help-bs').addEventListener('click', openHelp);
+document.getElementById('btn-help-diff').addEventListener('click', openHelp);
 document.getElementById('btn-help-close').addEventListener('click', closeHelp);
 document.getElementById('btn-help-close2').addEventListener('click', closeHelp);
 document.getElementById('help-overlay').addEventListener('click', e=>{ if(e.target===document.getElementById('help-overlay')) closeHelp(); });
