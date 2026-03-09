@@ -470,7 +470,7 @@ body {
 <!-- JOKER CONFIRM -->
 <div id="joker-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:350;align-items:center;justify-content:center;">
   <div style="background:#12122a;border:2px solid #ffd700;border-radius:16px;padding:22px;width:88%;max-width:340px;text-align:center;">
-    <div style="font-size:13px;color:#ffd700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">🃏 购买小丑牌</div>
+    <div id="jc-header" style="font-size:13px;color:#ffd700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">🃏 购买小丑牌</div>
     <div id="jc-name" style="font-size:22px;font-weight:bold;color:#ffe866;margin-bottom:10px;"></div>
     <div id="jc-desc" style="font-size:13px;color:#ccaa44;line-height:1.5;background:rgba(255,215,0,0.07);border-radius:10px;padding:12px;margin-bottom:18px;"></div>
     <div style="display:flex;gap:10px;justify-content:center;">
@@ -483,7 +483,7 @@ body {
 <!-- VOUCHER CONFIRM -->
 <div id="voucher-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:350;align-items:center;justify-content:center;">
   <div style="background:#12122a;border:2px solid #cc66ff;border-radius:16px;padding:22px;width:88%;max-width:340px;text-align:center;">
-    <div style="font-size:13px;color:#cc66ff;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">🎫 购买凭证</div>
+    <div id="vc-header" style="font-size:13px;color:#cc66ff;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">🎫 购买凭证</div>
     <div id="vc-name" style="font-size:22px;font-weight:bold;color:#e888ff;margin-bottom:10px;"></div>
     <div id="vc-desc" style="font-size:13px;color:#cc99ff;line-height:1.5;background:rgba(200,100,255,0.07);border-radius:10px;padding:12px;margin-bottom:18px;"></div>
     <div style="display:flex;gap:10px;justify-content:center;">
@@ -496,7 +496,7 @@ body {
 <!-- SELL CONFIRM -->
 <div id="sell-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:350;align-items:center;justify-content:center;">
   <div style="background:#12122a;border:2px solid #cd7f32;border-radius:16px;padding:22px;width:88%;max-width:340px;text-align:center;">
-    <div style="font-size:13px;color:#cd7f32;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">💰 卖出小丑牌</div>
+    <div id="sc-header" style="font-size:13px;color:#cd7f32;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">💰 卖出小丑牌</div>
     <div id="sc-name" style="font-size:22px;font-weight:bold;color:#ffb347;margin-bottom:10px;"></div>
     <div id="sc-desc" style="font-size:13px;color:#cc9966;line-height:1.5;background:rgba(200,130,50,0.07);border-radius:10px;padding:12px;margin-bottom:6px;"></div>
     <div id="sc-price" style="font-size:16px;color:#ffd700;font-weight:bold;margin-bottom:16px;"></div>
@@ -510,19 +510,19 @@ body {
 <!-- PLANET CONFIRM -->
 <div id="planet-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:350;align-items:center;justify-content:center;">
   <div style="background:#12122a;border:2px solid #4488ff;border-radius:16px;padding:22px;width:90%;max-width:360px;text-align:center;">
-    <div style="font-size:13px;color:#4488ff;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">🪐 行星牌升级</div>
+    <div id="pc-header" style="font-size:13px;color:#4488ff;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">🪐 行星牌升级</div>
     <div id="pc-planet" style="font-size:22px;font-weight:bold;color:#e0e0ff;margin-bottom:4px;"></div>
     <div id="pc-hand" style="font-size:13px;color:#8888aa;margin-bottom:16px;"></div>
     <div style="display:flex;justify-content:space-around;align-items:center;margin-bottom:20px;gap:12px;">
       <div style="flex:1;background:rgba(255,255,255,0.05);border-radius:10px;padding:12px;">
-        <div style="font-size:10px;color:#8888aa;margin-bottom:8px;text-transform:uppercase;">当前</div>
+        <div id="pc-cur-label" style="font-size:10px;color:#8888aa;margin-bottom:8px;text-transform:uppercase;">当前</div>
         <div id="pc-cur-chips" style="color:#4488ff;font-weight:bold;font-size:14px;"></div>
         <div id="pc-cur-mult" style="color:#ff6644;font-weight:bold;font-size:14px;"></div>
         <div id="pc-cur-lv" style="font-size:11px;color:#6666aa;margin-top:6px;"></div>
       </div>
       <div style="color:#8888aa;font-size:22px;">→</div>
       <div style="flex:1;background:rgba(68,136,255,0.1);border:1px solid #4488ff44;border-radius:10px;padding:12px;">
-        <div style="font-size:10px;color:#44aaff;margin-bottom:8px;text-transform:uppercase;">升级后</div>
+        <div id="pc-new-label" style="font-size:10px;color:#44aaff;margin-bottom:8px;text-transform:uppercase;">升级后</div>
         <div id="pc-new-chips" style="color:#4dccff;font-weight:bold;font-size:14px;"></div>
         <div id="pc-new-mult" style="color:#ff8866;font-weight:bold;font-size:14px;"></div>
         <div id="pc-new-lv" style="font-size:11px;color:#44ff88;margin-top:6px;"></div>
@@ -557,7 +557,7 @@ body {
 <!-- SHOP -->
 <div id="screen-shop" class="screen">
   <div id="shop-header">
-    <h2>🛒 商店</h2>
+    <h2 id="shop-title">🛒 商店</h2>
     <div class="info-box"><div class="lbl">💰</div><div class="val" id="shop-money">$0</div></div>
     <div style="flex:1"></div>
     <button class="btn btn-gold" id="btn-reroll" style="font-size:13px;padding:8px 16px;">重置商品 ($5)</button>
@@ -574,15 +574,15 @@ body {
 
 <!-- GAME OVER -->
 <div id="screen-gameover" class="screen">
-  <h1>💀 游戏结束</h1>
+  <h1 id="go-title">💀 游戏结束</h1>
   <p class="end-sub" id="go-stats"></p>
   <button class="btn btn-blue" id="btn-restart" style="font-size:18px;padding:12px 36px;margin-top:10px;">再来一局</button>
 </div>
 
 <!-- WIN -->
 <div id="screen-win" class="screen">
-  <h1>🏆 恭喜通关！</h1>
-  <p class="end-sub">你击败了全部 8 个 Ante！</p>
+  <h1 id="win-title">🏆 恭喜通关！</h1>
+  <p class="end-sub" id="win-sub">你击败了全部 8 个 Ante！</p>
   <p class="end-sub" id="win-stats"></p>
   <button class="btn btn-gold" id="btn-restart-win" style="font-size:18px;padding:12px 36px;margin-top:10px;">再玩一局</button>
 </div>
@@ -630,6 +630,13 @@ const STRINGS = {
     winRestart:'再来一局',
     goTitle:'💀 游戏结束',goRestart:'重新开始',
     rcTitle:'放弃当前游戏？',rcSub:'进度不会保存',rcCancel:'取消',rcConfirm:'放弃重开',
+    shopTitle:'🛒 商店',nextAnte:'下一关 →',
+    jcHeader:'🃏 购买小丑牌',jcCancel:'取消',jcBuyBtn:'确认购买',
+    vcHeader:'🎫 购买凭证',vcCancel:'取消',vcBuyBtn:'确认购买',
+    scHeader:'💰 卖出小丑牌',scCancel:'取消',scSellBtn:'确认卖出',scSellFor:'卖出可得：',
+    pcHeader:'🪐 行星牌升级',pcCurLabel:'当前',pcNewLabel:'升级后',pcBuyBtn:'确认购买',pcHandLabel:'升级牌型：',
+    winSub:'你击败了全部 8 个 Ante！',
+    sellJokerSec:'💰 卖出小丑牌',
     diffTitle:'选择难度',diffSubtitle:'难度越高分数倍率越大',
     helpTitle:'游戏规则',
   },
@@ -659,6 +666,13 @@ const STRINGS = {
     winRestart:'Play Again',
     goTitle:'💀 Game Over',goRestart:'Restart',
     rcTitle:'Abandon current game?',rcSub:'Progress will not be saved',rcCancel:'Cancel',rcConfirm:'Restart',
+    shopTitle:'🛒 Shop',nextAnte:'Next Round →',
+    jcHeader:'🃏 Buy Joker',jcCancel:'Cancel',jcBuyBtn:'Buy',
+    vcHeader:'🎫 Buy Voucher',vcCancel:'Cancel',vcBuyBtn:'Buy',
+    scHeader:'💰 Sell Joker',scCancel:'Cancel',scSellBtn:'Sell',scSellFor:'Sell for:',
+    pcHeader:'🪐 Planet Upgrade',pcCurLabel:'Current',pcNewLabel:'Upgraded',pcBuyBtn:'Buy',pcHandLabel:'Upgrades: ',
+    winSub:'You beat all 8 Antes!',
+    sellJokerSec:'💰 Sell Jokers',
     diffTitle:'Choose Difficulty',diffSubtitle:'Higher difficulty = higher score targets',
     helpTitle:'How to Play',
   }
@@ -1510,7 +1524,7 @@ function renderShopItems(){
   document.getElementById('btn-reroll').textContent=`${t('rerollBtn')} ($${rc})`;
   document.getElementById('btn-reroll').disabled=G.money<rc;
   // Sell section
-  const sh4=document.getElementById('shop-h4'); if(sh4) sh4.textContent=CURR_LANG==='en'?'💰 Sell Jokers':'💰 卖出小丑牌';
+  const sh4=document.getElementById('shop-h4'); if(sh4) sh4.textContent=t('sellJokerSec');
   const sc2=document.getElementById('shop-sell'); sc2.innerHTML='';
   if(G.jokers.length===0){
     const el=document.createElement('div');
@@ -1536,9 +1550,11 @@ function renderShopItems(){
 let _pendingVoucher=null;
 function buyVoucher(v){
   _pendingVoucher=v;
+  document.getElementById('vc-header').textContent=t('vcHeader');
+  document.getElementById('vc-cancel').textContent=t('vcCancel');
   document.getElementById('vc-name').textContent=tDef(v,'name');
   document.getElementById('vc-desc').textContent=tDef(v,'desc');
-  document.getElementById('vc-buy').textContent=(CURR_LANG==='en'?'Buy':'确认购买')+' $'+v.cost;
+  document.getElementById('vc-buy').textContent=t('vcBuyBtn')+' $'+v.cost;
   document.getElementById('voucher-confirm').style.display='flex';
 }
 function refreshShopPrices(){
@@ -1582,9 +1598,11 @@ let _pendingPlanet = null;
 
 function openJokerConfirm(item) {
   _pendingJoker = item;
-  document.getElementById('jc-name').textContent = item.name;
-  document.getElementById('jc-desc').textContent = item.desc;
-  document.getElementById('jc-buy').textContent = '确认购买 $' + item.cost;
+  document.getElementById('jc-name').textContent = tDef(item,'name');
+  document.getElementById('jc-desc').textContent = tDef(item,'desc');
+  document.getElementById('jc-header').textContent = t('jcHeader');
+  document.getElementById('jc-cancel').textContent = t('jcCancel');
+  document.getElementById('jc-buy').textContent = t('jcBuyBtn') + ' $' + item.cost;
   document.getElementById('joker-confirm').style.display = 'flex';
 }
 
@@ -1597,8 +1615,10 @@ function sellJoker(idx){
   _pendingSellIdx=idx;
   document.getElementById('sc-name').textContent=tDef(def,'name');
   document.getElementById('sc-desc').textContent=tDef(def,'desc');
-  document.getElementById('sc-price').textContent=(CURR_LANG==='en'?`Sell for: +$${sv}`:`卖出可得：+$${sv}`);
-  document.getElementById('sc-sell').textContent=(CURR_LANG==='en'?'Confirm Sell':'确认卖出')+' +$'+sv;
+  document.getElementById('sc-header').textContent=t('scHeader');
+  document.getElementById('sc-cancel').textContent=t('scCancel');
+  document.getElementById('sc-price').textContent=t('scSellFor')+' +$'+sv;
+  document.getElementById('sc-sell').textContent=t('scSellBtn')+' +$'+sv;
   document.getElementById('sell-confirm').style.display='flex';
 }
 function confirmSellJoker(){
@@ -1620,15 +1640,19 @@ function openPlanetConfirm(item) {
   const lv = G.handLevels[item.hand]||1;
   const curBc = ht.bc+(lv-1)*15, curBm = ht.bm+(lv-1);
   const newBc = curBc+15,        newBm = curBm+1;
-  document.getElementById('pc-planet').textContent = item.emoji+' '+item.name;
-  document.getElementById('pc-hand').textContent = '升级牌型：'+ht.name;
-  document.getElementById('pc-cur-chips').textContent = curBc+' 筹码';
-  document.getElementById('pc-cur-mult').textContent = '×'+curBm+' 倍率';
+  document.getElementById('pc-header').textContent = t('pcHeader');
+  document.getElementById('pc-cur-label').textContent = t('pcCurLabel');
+  document.getElementById('pc-new-label').textContent = t('pcNewLabel');
+  document.getElementById('pc-planet').textContent = item.emoji+' '+tDef(item,'name');
+  document.getElementById('pc-hand').textContent = t('pcHandLabel')+tDef(ht,'name');
+  const chips=t('sfxChips'), mult=t('sfxMult');
+  document.getElementById('pc-cur-chips').textContent = curBc+' '+chips;
+  document.getElementById('pc-cur-mult').textContent = '×'+curBm+' '+mult;
   document.getElementById('pc-cur-lv').textContent = 'Lv.'+lv;
-  document.getElementById('pc-new-chips').textContent = newBc+' 筹码 (+15)';
-  document.getElementById('pc-new-mult').textContent = '×'+newBm+' 倍率 (+1)';
+  document.getElementById('pc-new-chips').textContent = newBc+' '+chips+' (+15)';
+  document.getElementById('pc-new-mult').textContent = '×'+newBm+' '+mult+' (+1)';
   document.getElementById('pc-new-lv').textContent = 'Lv.'+(lv+1);
-  document.getElementById('pc-buy').textContent = '确认购买 $'+item.cost;
+  document.getElementById('pc-buy').textContent = t('pcBuyBtn')+' $'+item.cost;
   document.getElementById('planet-confirm').style.display='flex';
 }
 
@@ -2204,18 +2228,36 @@ function applyI18nStatic(){
   // Blind select buttons
   const bs=document.getElementById('btn-start'); if(bs) bs.textContent=t('startBtn');
   const bh=document.getElementById('btn-help-bs'); if(bh) bh.textContent=t('helpBtn');
-  // Scoring dialog
-  const sc=document.getElementById('btn-sco-continue'); if(sc) sc.textContent=t('continue');
+  // Scoring dialog continue
+  const scc=document.getElementById('btn-sco-continue'); if(scc) scc.textContent=t('continue');
+  // Shop
+  const st=document.getElementById('shop-title'); if(st) st.textContent=t('shopTitle');
+  const na=document.getElementById('btn-next-ante'); if(na) na.textContent=t('nextAnte');
+  // Joker confirm static text
+  const jch=document.getElementById('jc-header'); if(jch) jch.textContent=t('jcHeader');
+  const jcc=document.getElementById('jc-cancel'); if(jcc) jcc.textContent=t('jcCancel');
+  // Voucher confirm static text
+  const vch=document.getElementById('vc-header'); if(vch) vch.textContent=t('vcHeader');
+  const vcc=document.getElementById('vc-cancel'); if(vcc) vcc.textContent=t('vcCancel');
+  // Sell confirm static text
+  const sch=document.getElementById('sc-header'); if(sch) sch.textContent=t('scHeader');
+  const sca=document.getElementById('sc-cancel'); if(sca) sca.textContent=t('scCancel');
+  // Planet confirm static text
+  const pch=document.getElementById('pc-header'); if(pch) pch.textContent=t('pcHeader');
+  const pcl=document.getElementById('pc-cur-label'); if(pcl) pcl.textContent=t('pcCurLabel');
+  const pnl=document.getElementById('pc-new-label'); if(pnl) pnl.textContent=t('pcNewLabel');
+  const pca=document.getElementById('pc-cancel'); if(pca) pca.textContent=t('scCancel');
+  // Joker detail close
+  const jdc=document.getElementById('jd-close'); if(jdc) jdc.textContent=t('jdClose');
   // Difficulty screen
   renderDifficultyScreen();
   // Win screen
   const wt=document.getElementById('win-title'); if(wt) wt.textContent=t('winTitle');
+  const ws2=document.getElementById('win-sub'); if(ws2) ws2.textContent=t('winSub');
   const wr=document.getElementById('btn-restart-win'); if(wr) wr.textContent=t('winRestart');
   // Gameover screen
   const gt=document.getElementById('go-title'); if(gt) gt.textContent=t('goTitle');
   const gr=document.getElementById('btn-restart'); if(gr) gr.textContent=t('goRestart');
-  // Win/gameover stats text
-  const ws=document.getElementById('win-stats-lbl'); if(ws) ws.textContent=t('winHandsLabel');
 }
 document.getElementById('jd-close').addEventListener('click',()=>{
   document.getElementById('joker-detail').style.display='none';
