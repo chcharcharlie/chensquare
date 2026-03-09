@@ -31,6 +31,7 @@ body {
   display: flex; flex-direction: column;
   align-items: center; justify-content: space-between;
   padding: 5px;
+  position: relative;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, opacity 0.2s;
   flex-shrink: 0;
@@ -46,6 +47,7 @@ body {
 .card-rank { font-size: 16px; font-weight: bold; line-height: 1; align-self: flex-start; }
 .card-suit { font-size: 26px; line-height: 1; }
 .card-rank-bot { font-size: 16px; font-weight: bold; line-height: 1; align-self: flex-end; transform: rotate(180deg); }
+.card-bonus-badge { position:absolute; bottom:3px; left:3px; font-size:9px; font-weight:bold; background:#1a5e1a; color:#88ff88; border-radius:4px; padding:1px 4px; line-height:1.3; pointer-events:none; z-index:2; }
 
 /* BUTTONS */
 .btn { padding: 10px 22px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.15s; }
@@ -480,7 +482,8 @@ body {
 <div id="joker-detail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:360;align-items:center;justify-content:center;">
   <div style="background:#1a1200;border:2px solid #ffd700;border-radius:16px;padding:24px;width:84%;max-width:300px;text-align:center;">
     <div id="jd-emoji" style="font-size:52px;margin-bottom:10px;font-family:'Segoe UI Symbol','Apple Symbols','Arial Unicode MS',sans-serif;"></div>
-    <div id="jd-name" style="font-size:20px;font-weight:bold;color:#ffd700;margin-bottom:10px;"></div>
+    <div id="jd-name" style="font-size:20px;font-weight:bold;color:#ffd700;margin-bottom:6px;"></div>
+    <div id="jd-price" style="font-size:12px;color:#aaa;margin-bottom:10px;"></div>
     <div id="jd-desc" style="font-size:13px;color:#ccaa44;line-height:1.6;background:rgba(255,215,0,0.07);border-radius:10px;padding:12px;margin-bottom:16px;"></div>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;">
       <button class="btn" id="jd-move-left" style="display:none;background:rgba(100,100,255,0.15);color:#aaaaff;border:1px solid #aaaaff55;flex:1;">◀ 左移</button>
@@ -655,6 +658,7 @@ body {
     <div class="shop-sec"><h3 id="shop-h1">🃏 小丑牌</h3><div class="shop-items" id="shop-jokers"></div></div>
     <div class="shop-sec"><h3 id="shop-h2">🪐 行星牌（升级牌型）</h3><div class="shop-items" id="shop-planets"></div></div>
     <div class="shop-sec"><h3 id="shop-h3">🎫 凭证（永久升级）</h3><div class="shop-items" id="shop-vouchers"></div></div>
+    <div class="shop-sec"><h3 id="shop-h4">💰 卖出小丑牌</h3><div class="shop-items" id="shop-sell"></div></div>
   </div>
 </div>
 
@@ -879,6 +883,33 @@ const JOKER_DEFS = [
    retrigger(c,hr,g,j,idx){return idx===0?2:0;}},
   {id:'J38',sym:'∿',col:'#103878',name:'气泡水',name_en:'Seltzer',cost:7,desc:'所有打出的牌各重复计分一次，共10次出牌后消失',desc_en:'All cards retrigger; self-destructs after 10 hands',dynamic:true,initVal:10,
    retrigger(c,hr,g,j){return(j.val||0)>0?1:0;}},
+  // ── New Jokers ──
+  {id:'J39',sym:'🧠',col:'#5028a0',name:'头脑风暴',name_en:'Brainstorm',cost:10,desc:'复制最左侧小丑的效果',desc_en:'Copies the effect of the leftmost Joker',
+   apply(h,g,j){
+     const idx=g.jokers.indexOf(j);
+     if(idx<=0)return{}; // no joker to the left, or we ARE the leftmost
+     const leftmost=g.jokers[0];
+     if(leftmost===j)return{};
+     const lDef=JOKER_DEFS.find(d=>d.id===leftmost.id);
+     if(!lDef||lDef.retrigger||lDef.perCard||lDef.id==='J31'||lDef.id==='J39')return{};
+     return lDef.apply?lDef.apply(h,g,leftmost):{};
+   }},
+  {id:'J40',sym:'🥾',col:'#287838',name:'远足者',name_en:'Hiker',cost:6,desc:'每张打出的牌永久+3筹码',desc_en:'Each played card permanently gains +3 Chips',
+   perCard(c,hr,g,j){c._bonus=(c._bonus||0)+3; return{ac:3};}},
+  {id:'J41',sym:'✂',col:'#c86010',name:'快捷方式',name_en:'Shortcut',cost:7,desc:'顺子允许间隔一格（如A/3/5/7/9也算顺子）',desc_en:'Straights can have gaps of 1 (e.g. A/3/5/7/9 counts)',
+   apply(h,g){return {};} // flag joker — logic handled in evalHand
+  },
+  {id:'J42',sym:'≈',col:'#20a898',name:'涂抹',name_en:'Smeared Joker',cost:7,desc:'♥/♦互认同花，♠/♣互认同花',desc_en:'Hearts and Diamonds share a suit; Spades and Clubs share a suit',
+   apply(h,g){return {};} // flag joker — logic handled in evalHand
+  },
+  {id:'J43',sym:'⚔',col:'#a85018',name:'浪荡剑客',name_en:'Swashbuckler',cost:5,desc:'将所有小丑牌售价之和加入倍率',desc_en:'Adds the total sell value of all Jokers to Mult',
+   apply(h,g,j){
+     const sellTotal=g.jokers.reduce((s,jj)=>{
+       const def=JOKER_DEFS.find(d=>d.id===jj.id);
+       return s+Math.max(1,Math.ceil((def?def.cost:3)/2));
+     },0);
+     return sellTotal>0?{am:sellTotal}:{};
+   }},
 ];
 
 // =============================================
@@ -947,12 +978,20 @@ function evalHand(cards){
   if(!cards||cards.length===0) return {type:'HIGH_CARD',sc:[],name:'高牌'};
   const sorted=[...cards].sort((a,b)=>b.ro-a.ro);
   const rc={}, sc={};
-  for(const c of sorted){ rc[c.rank]=(rc[c.rank]||0)+1; sc[c.suit]=(sc[c.suit]||0)+1; }
+  // Smeared Joker: treat ♥/♦ as same suit, ♠/♣ as same suit
+  const hasSmeared=G.jokers&&G.jokers.some(j=>j.id==='J42');
+  for(const c of sorted){
+    rc[c.rank]=(rc[c.rank]||0)+1;
+    const ks=hasSmeared?(c.suit==='♥'||c.suit==='♦'?'RED':(c.suit==='♠'||c.suit==='♣'?'BLACK':c.suit)):c.suit;
+    sc[ks]=(sc[ks]||0)+1;
+  }
   const counts=Object.values(rc).sort((a,b)=>b-a);
   const isFlush=cards.length>=5&&Object.values(sc).some(v=>v>=5);
   const uniq=[...new Set(sorted.map(c=>c.ro))].sort((a,b)=>a-b);
+  const hasShortcut=G.jokers&&G.jokers.some(j=>j.id==='J41');
   let isStraight=false, stCards=[];
   if(uniq.length>=5){
+    // Normal straight check
     for(let i=0;i<=uniq.length-5;i++){
       const sl=uniq.slice(i,i+5);
       if(sl[4]-sl[0]===4){
@@ -960,6 +999,23 @@ function evalHand(cards){
         const ss=new Set(sl);
         stCards=sorted.filter(c=>ss.has(c.ro));
         break;
+      }
+    }
+    // Shortcut: allow gaps of 1 (span of 8 for 5 cards, max 1 gap)
+    if(!isStraight&&hasShortcut){
+      for(let i=0;i<=uniq.length-5;i++){
+        const sl=uniq.slice(i,i+5);
+        // span ≤ 8 and at most one gap of 2 (all other consecutive or gap=1)
+        if(sl[4]-sl[0]<=8){
+          let gaps=0;
+          for(let k=1;k<sl.length;k++) if(sl[k]-sl[k-1]>1) gaps++;
+          if(gaps<=1){
+            isStraight=true;
+            const ss=new Set(sl);
+            stCards=sorted.filter(c=>ss.has(c.ro));
+            break;
+          }
+        }
       }
     }
     if(!isStraight&&uniq.includes(14)){
@@ -1215,8 +1271,14 @@ function openJokerDetail(def, idx){
   _detailJokerIdx = idx ?? -1;
   const el=document.getElementById('jd-emoji');
   if(el){ el.style.setProperty('--jcol',def.col||'#ffd700'); el.textContent=def.sym||'?'; }
-  document.getElementById('jd-name').textContent=def.name;
-  document.getElementById('jd-desc').textContent=def.desc;
+  document.getElementById('jd-name').textContent=tDef(def,'name');
+  document.getElementById('jd-desc').textContent=tDef(def,'desc');
+  // Price line: buy cost + sell value
+  const sv=Math.max(1,Math.ceil(def.cost/2));
+  const priceEl=document.getElementById('jd-price');
+  if(priceEl) priceEl.textContent=CURR_LANG==='en'
+    ?`Buy: $${def.cost}  ·  Sell: $${sv}`
+    :`买价：$${def.cost}  ·  售价：$${sv}`;
   // Show/hide move buttons based on position
   const total=G.jokers.length;
   const lBtn=document.getElementById('jd-move-left');
@@ -1254,7 +1316,9 @@ function mkCard(card){
   const el=document.createElement('div');
   el.className='card '+suitClass(card.suit)+(card.sel?' selected':'');
   el.dataset.cid=card.id;
-  el.innerHTML=`<span class="card-rank">${card.rank}</span><span class="card-suit">${card.suit}</span><span class="card-rank-bot">${card.rank}</span>`;
+  const bonus=card._bonus||0;
+  const bonusBadge=bonus>0?`<span class="card-bonus-badge">+${bonus}</span>`:'';
+  el.innerHTML=`<span class="card-rank">${card.rank}</span><span class="card-suit">${card.suit}</span><span class="card-rank-bot">${card.rank}</span>${bonusBadge}`;
   return el;
 }
 
@@ -1382,6 +1446,28 @@ function renderShopItems(){
   const rc=G.shopRerollCost||5;
   document.getElementById('btn-reroll').textContent=`${t('rerollBtn')} ($${rc})`;
   document.getElementById('btn-reroll').disabled=G.money<rc;
+  // Sell section
+  const sh4=document.getElementById('shop-h4'); if(sh4) sh4.textContent=CURR_LANG==='en'?'💰 Sell Jokers':'💰 卖出小丑牌';
+  const sc2=document.getElementById('shop-sell'); sc2.innerHTML='';
+  if(G.jokers.length===0){
+    const el=document.createElement('div');
+    el.className='shop-item sold';
+    el.innerHTML=`<div class="iname" style="color:#888">${CURR_LANG==='en'?'No jokers to sell':'暂无小丑牌可卖'}</div>`;
+    sc2.appendChild(el);
+  } else {
+    for(let i=0;i<G.jokers.length;i++){
+      const jj=G.jokers[i];
+      const def=JOKER_DEFS.find(d=>d.id===jj.id);
+      if(!def) continue;
+      const sv=Math.max(1,Math.ceil(def.cost/2));
+      const el=document.createElement('div');
+      el.className='shop-item';
+      el.style.borderColor='#8b4513';
+      el.innerHTML=`<span class="badge" style="background:#8b4513;color:#ffd">💰 ${CURR_LANG==='en'?'Sell':'售出'}</span><div class="iname">${tDef(def,'name')}</div><div class="idesc">${tDef(def,'desc')}</div><div class="icost" style="color:#ffd700">+$${sv}</div>`;
+      el.addEventListener('click',()=>sellJoker(i));
+      sc2.appendChild(el);
+    }
+  }
 }
 
 function buyVoucher(v){
@@ -1411,6 +1497,18 @@ function openJokerConfirm(item) {
   document.getElementById('jc-desc').textContent = item.desc;
   document.getElementById('jc-buy').textContent = '确认购买 $' + item.cost;
   document.getElementById('joker-confirm').style.display = 'flex';
+}
+
+function sellJoker(idx){
+  const jj=G.jokers[idx];
+  if(!jj) return;
+  const def=JOKER_DEFS.find(d=>d.id===jj.id);
+  const sv=Math.max(1,Math.ceil((def?def.cost:3)/2));
+  G.jokers.splice(idx,1);
+  G.money+=sv;
+  saveGame();
+  renderJokers();
+  renderShopItems(); // refresh sell list + joker slots
 }
 
 function openPlanetConfirm(item) {
@@ -1453,8 +1551,8 @@ function saveGame() {
       handTypeCounts: G.handTypeCounts||{},
       boughtVouchers: [...(G.boughtVouchers||[])],
       voucherEffects: G.voucherEffects||{},
-      hand: G.hand ? G.hand.map(c=>({suit:c.suit,rank:c.rank})) : [],
-      deck: G.deck ? G.deck.pile.map(c=>({suit:c.suit,rank:c.rank})) : [],
+      hand: G.hand ? G.hand.map(c=>({suit:c.suit,rank:c.rank,bonus:c._bonus||0})) : [],
+      deck: G.deck ? G.deck.pile.map(c=>({suit:c.suit,rank:c.rank,bonus:c._bonus||0})) : [],
       // Save shop item IDs + sold status (no functions, reconstruct on load)
       shopSave: G.shopItems ? {
         jokerIds: G.shopItems.jokers.map(j=>({id:j.id,sold:j.sold,cost:j.cost})),
@@ -1485,9 +1583,9 @@ function loadGame() {
       boughtVouchers: new Set(s.boughtVouchers||[]),
       voucherEffects: s.voucherEffects||{extraShopJokers:0,discount:0},
     });
-    G.hand = (s.hand||[]).map(c=>new Card(c.suit,c.rank));
+    G.hand = (s.hand||[]).map(c=>{ const card=new Card(c.suit,c.rank); if(c.bonus) card._bonus=c.bonus; return card; });
     // Restore deck (remaining cards)
-    const deckPile = (s.deck||[]).map(c=>new Card(c.suit,c.rank));
+    const deckPile = (s.deck||[]).map(c=>{ const card=new Card(c.suit,c.rank); if(c.bonus) card._bonus=c.bonus; return card; });
     G.deck = { pile: deckPile, deal(n){ return this.pile.splice(0,Math.min(n,this.pile.length)); } };
     G.target = getBlindTarget(G.ante, G.blind);
     // Restore shop items (reconstruct full objects from saved IDs)
