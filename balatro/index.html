@@ -447,7 +447,7 @@ body {
 <div id="handlv-tooltip">
   <div class="ht-name" id="ht-name"></div>
   <div class="ht-stats">
-    <span class="ht-chips" id="ht-chips"></span> 筹码 × <span class="ht-mult" id="ht-mult"></span> 倍率
+    <span class="ht-chips" id="ht-chips"></span> <span id="ht-chips-lbl">筹码</span> × <span class="ht-mult" id="ht-mult"></span> <span id="ht-mult-lbl">倍率</span>
   </div>
   <div class="ht-lv" id="ht-lv"></div>
 </div>
@@ -2250,6 +2250,9 @@ function applyI18nStatic(){
   const pca=document.getElementById('pc-cancel'); if(pca) pca.textContent=t('scCancel');
   // Joker detail close
   const jdc=document.getElementById('jd-close'); if(jdc) jdc.textContent=t('jdClose');
+  // Hand level tooltip labels
+  const htcl=document.getElementById('ht-chips-lbl'); if(htcl) htcl.textContent=t('sfxChips');
+  const html=document.getElementById('ht-mult-lbl'); if(html) html.textContent=t('sfxMult');
   // Difficulty screen
   renderDifficultyScreen();
   // Win screen
