@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>chensquare — AI-made little things</title>
+  <meta name="description" content="A collection of small projects and games, all made with AI. By Chen Chen.">
+  <style>
+    :root {
+      --bg: #0d0d1a;
+      --surface: #14142a;
+      --border: #2a2a4a;
+      --accent: #7c6af7;
+      --accent2: #f76a9b;
+      --text: #e0e0f0;
+      --muted: #7070a0;
+      --card-hover: #1c1c38;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    header {
+      padding: 3rem 2rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .wordmark {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: inline-block;
+    }
+
+    .tagline {
+      margin-top: 0.5rem;
+      color: var(--muted);
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── ABOUT ──────────────────────────────────────────── */
+    .about {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 2rem 0;
+    }
+
+    .about-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem 2rem;
+    }
+
+    .about-box h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .about-box p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 600px;
+    }
+
+    .about-box p + p {
+      margin-top: 0.5rem;
+    }
+
+    .placeholder {
+      display: inline-block;
+      background: var(--border);
+      border-radius: 4px;
+      color: transparent;
+      user-select: none;
+    }
+
+    /* ── PROJECTS ───────────────────────────────────────── */
+    .projects {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    .projects h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .card-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .card-tag {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent2);
+      background: rgba(247, 106, 155, 0.1);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 480px) {
+      header { padding: 2rem 1.25rem 1.5rem; }
+      .about, .projects { padding-left: 1.25rem; padding-right: 1.25rem; }
+      .wordmark { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">chensquare</div>
+  <p class="tagline">AI-made little things, built for fun.</p>
+</header>
+
+<section class="about">
+  <div class="about-box">
+    <h2>About this place</h2>
+    <p>
+      This is where I dump all the small stuff I build with AI — games, tools, experiments.
+      Nothing here is particularly serious. Everything here was made because it seemed fun to make.
+    </p>
+    <p>
+      If something breaks, that's probably part of the experience.
+    </p>
+  </div>
+</section>
+
+<section class="projects">
+  <h2>Projects</h2>
+  <div class="grid">
+
+    <a class="card" href="/balatro">
+      <span class="card-icon">🃏</span>
+      <div class="card-title">Balatro Lite</div>
+      <div class="card-desc">
+        A browser-based poker roguelike inspired by Balatro. Play hands, trigger jokers, chase high scores.
+      </div>
+      <span class="card-tag">Game</span>
+    </a>
+
+    <a class="card" href="/firstsolo">
+      <span class="card-icon">✈️</span>
+      <div class="card-title">FirstSolo</div>
+      <div class="card-desc">
+        A flight training platform for CFIs and student pilots. Track lessons, log progress, and prepare for that first solo.
+      </div>
+      <span class="card-tag">App</span>
+    </a>
+
+  </div>
+</section>
+
+<footer>
+  <p>Made with AI · <a href="https://github.com/chcharcharlie" style="color: var(--accent); text-decoration: none;">@chcharcharlie</a></p>
+</footer>
+
+</body>
+</html>
