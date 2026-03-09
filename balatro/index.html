@@ -360,54 +360,12 @@ body {
 
 <!-- DIFFICULTY SELECT -->
 <div id="screen-difficulty" class="screen">
-  <h1>🃏 Balatro Lite</h1>
-  <p>选择难度（以正式 Balatro White Stake 分数为基准）</p>
-  <div class="diff-cards">
-    <div class="diff-card diff-0" onclick="startWithDifficulty(0)">
-      <div class="diff-emoji">😊</div>
-      <div class="diff-name">新手</div>
-      <div class="diff-stake">Beginner</div>
-      <div class="diff-stats">
-        <span>目标分 <b class="ds-good">×0.6</b></span>
-        <span>初始金 <b class="ds-good">$6</b></span>
-        <span>出牌 <b class="ds-good">4次</b></span>
-        <span>弃牌 <b class="ds-good">4次</b></span>
-      </div>
-    </div>
-    <div class="diff-card diff-1" onclick="startWithDifficulty(1)">
-      <div class="diff-emoji">⚔️</div>
-      <div class="diff-name">标准</div>
-      <div class="diff-stake">White Stake</div>
-      <div class="diff-stats">
-        <span>目标分 <b>×1.0</b></span>
-        <span>初始金 <b>$4</b></span>
-        <span>出牌 <b>3次</b></span>
-        <span>弃牌 <b>3次</b></span>
-      </div>
-    </div>
-    <div class="diff-card diff-2" onclick="startWithDifficulty(2)">
-      <div class="diff-emoji">🔥</div>
-      <div class="diff-name">困难</div>
-      <div class="diff-stake">Red Stake</div>
-      <div class="diff-stats">
-        <span>目标分 <b class="ds-bad">×1.5</b></span>
-        <span>初始金 <b class="ds-bad">$3</b></span>
-        <span>出牌 <b>3次</b></span>
-        <span>弃牌 <b class="ds-bad">2次</b></span>
-      </div>
-    </div>
-    <div class="diff-card diff-3" onclick="startWithDifficulty(3)">
-      <div class="diff-emoji">💀</div>
-      <div class="diff-name">极难</div>
-      <div class="diff-stake">Black Stake</div>
-      <div class="diff-stats">
-        <span>目标分 <b class="ds-bad">×2.5</b></span>
-        <span>初始金 <b class="ds-bad">$2</b></span>
-        <span>出牌 <b class="ds-bad">2次</b></span>
-        <span>弃牌 <b class="ds-bad">1次</b></span>
-      </div>
-    </div>
+  <div style="position:absolute;top:14px;right:14px;">
+    <button class="btn" id="btn-lang-diff" style="background:rgba(255,255,255,0.1);color:#aaaacc;padding:5px 8px;font-size:12px;border:1px solid #3a3a6a;min-width:36px;">EN</button>
   </div>
+  <h1>🃏 Balatro Lite</h1>
+  <p id="diff-subtitle" style="font-size:13px;color:#8888aa;text-align:center;max-width:380px;"></p>
+  <div id="diff-cards" class="diff-cards"></div>
 </div>
 
 <!-- BLIND SELECT -->
@@ -638,6 +596,10 @@ const STRINGS = {
     play:'出牌',discard:'弃牌',leaveShop:'离开商店',restart:'重新开始',newGame:'新游戏',
     continue:'继续',nextRound:'开始挑战',
     labelHands:'手牌',labelDiscards:'弃牌',labelMoney:'金钱',
+    jokerLbl:'🃏 小丑：',upgradeLbl:'🪐 升级：',blindLbl:'盲注',
+    startBtn:'⚔️ 开始！',helpBtn:'❓ 游戏规则',
+    handsLbl:'出牌次数',discardsLbl:'弃牌次数',
+    diffTarget:'目标分',diffMoney:'初始金',diffHands:'出牌',diffDiscards:'弃牌',diffTimes:'次',
     shopSec1:'🃏 小丑牌',shopSec2:'🪐 行星牌（升级牌型）',shopSec3:'🎫 凭证（永久升级）',
     rerollBtn:'重置商品',
     badgeJ:'小丑',badgeP:'行星',badgeV:'凭证',
@@ -662,6 +624,10 @@ const STRINGS = {
     play:'Play',discard:'Discard',leaveShop:'Leave Shop',restart:'Restart',newGame:'New Game',
     continue:'Continue',nextRound:'Start',
     labelHands:'Hands',labelDiscards:'Discards',labelMoney:'Money',
+    jokerLbl:'🃏 Jokers:',upgradeLbl:'🪐 Upgraded:',blindLbl:'Blind',
+    startBtn:'⚔️ Start!',helpBtn:'❓ How to Play',
+    handsLbl:'Hands',discardsLbl:'Discards',
+    diffTarget:'Target',diffMoney:'Start $',diffHands:'Hands',diffDiscards:'Discards',diffTimes:'',
     shopSec1:'🃏 Jokers',shopSec2:'🪐 Planets (Upgrade Hands)',shopSec3:'🎫 Vouchers (Permanent)',
     rerollBtn:'Reroll',
     badgeJ:'Joker',badgeP:'Planet',badgeV:'Voucher',
@@ -703,10 +669,10 @@ const BLIND_TARGETS_BASE = [
 ];
 
 const DIFFICULTIES = [
-  { id:0, name:'新手',  name_en:'Beginner',  emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
-  { id:1, name:'标准',  name_en:'Standard',  emoji:'⚔️', mult:1.0, money:4, hands:3, discards:3 },
-  { id:2, name:'困难',  name_en:'Hard',      emoji:'🔥', mult:1.5, money:3, hands:3, discards:2 },
-  { id:3, name:'极难',  name_en:'Nightmare', emoji:'💀', mult:2.5, money:2, hands:2, discards:1 },
+  { id:0, name:'新手',  name_en:'Beginner',  stake:'Beginner',    emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
+  { id:1, name:'标准',  name_en:'Standard',  stake:'White Stake', emoji:'⚔️', mult:1.0, money:4, hands:3, discards:3 },
+  { id:2, name:'困难',  name_en:'Hard',      stake:'Red Stake',   emoji:'🔥', mult:1.5, money:3, hands:3, discards:2 },
+  { id:3, name:'极难',  name_en:'Nightmare', stake:'Black Stake', emoji:'💀', mult:2.5, money:2, hands:2, discards:1 },
 ];
 
 function getBlindTarget(ante, blind) {
@@ -1919,7 +1885,7 @@ function showScoringDialog(hr, sr) {
   }
   setTimeout(()=>{
     const td = document.getElementById('score-total');
-    td.textContent = `${sr.chips} × ${sr.mult} = ${sr.total.toLocaleString()} 分`;
+    const sc=t('score'); td.textContent = `${sr.chips} × ${sr.mult} = ${sr.total.toLocaleString()}${sc?' '+sc:''}`;
     td.classList.add('show');
   }, delay+60);
 }
@@ -1990,7 +1956,7 @@ function afterScoring(){
       if(G.ante>=8){
         G.state='GAME_WIN';
         clearSave();
-        document.getElementById('win-stats').textContent=`共出牌 ${G.handsPlayed} 次，太厉害了！`;
+        document.getElementById('win-stats').textContent=CURR_LANG==='en'?`Hands played: ${G.handsPlayed}`:`共出牌 ${G.handsPlayed} 次，太厉害了！`;
         showScreen('screen-win'); return;
       }
       G.ante++; G.blind=0; G.state='SHOP';
@@ -2008,8 +1974,9 @@ function afterScoring(){
   if(G.handsLeft<=0){
     G.state='GAME_OVER';
     clearSave();
-    document.getElementById('go-stats').textContent=
-      `Ante ${G.ante}/8，${BLIND_NAMES[G.blind]}，${G.score.toLocaleString()} / ${G.target.toLocaleString()} 分`;
+    document.getElementById('go-stats').textContent=CURR_LANG==='en'
+      ?`Ante ${G.ante}/8 · ${tBlind(G.blind)} · ${G.score.toLocaleString()} / ${G.target.toLocaleString()}`
+      :`Ante ${G.ante}/8，${BLIND_NAMES[G.blind]}，${G.score.toLocaleString()} / ${G.target.toLocaleString()} 分`;
     showScreen('screen-gameover'); return;
   }
 
@@ -2141,45 +2108,82 @@ document.getElementById('btn-restart-win').addEventListener('click',restart);
 document.getElementById('btn-newgame').addEventListener('click',()=>{
   if(confirm('放弃当前游戏，重新开始？')) restart();
 });
-document.getElementById('btn-lang').addEventListener('click',()=>{
+function toggleLang(){
   CURR_LANG = CURR_LANG==='zh'?'en':'zh';
   localStorage.setItem('balatro_lang', CURR_LANG);
-  // Re-render current screen
   const activeScreen = document.querySelector('.screen.active');
   if(activeScreen){
     const sid = activeScreen.id;
     if(sid==='screen-playing') renderPlaying();
     else if(sid==='screen-shop') renderShop();
     else if(sid==='screen-blind-select') renderBlindSelect();
-    else if(sid==='screen-difficulty'||sid==='screen-win'||sid==='screen-gameover') applyI18nStatic();
   }
   applyI18nStatic();
-});
+}
+document.getElementById('btn-lang').addEventListener('click', toggleLang);
+document.getElementById('btn-lang-diff').addEventListener('click', toggleLang);
 
-function applyI18nStatic(){
-  // Update play buttons
-  const bp=document.getElementById('btn-play');
-  if(bp) bp.innerHTML=`▶ ${t('play')}`;
-  const bd=document.getElementById('btn-discard');
-  if(bd) bd.innerHTML=`🗑 ${t('discard')}`;
-  const bl=document.getElementById('btn-leave');
-  if(bl) bl.textContent=t('leaveShop');
-  const lb=document.getElementById('btn-lang');
-  if(lb) lb.textContent=CURR_LANG==='zh'?'EN':'中文';
-  // Counter labels
-  const cl=document.querySelectorAll('.clbl');
-  if(cl.length>=2){
-    cl[0].textContent=t('labelHands'); cl[1].textContent=t('labelDiscards');
-  }
-  // Difficulty screen title
+function renderDifficultyScreen(){
+  const en=CURR_LANG==='en';
   const dt=document.getElementById('diff-title'); if(dt) dt.textContent=t('diffTitle');
   const ds=document.getElementById('diff-subtitle'); if(ds) ds.textContent=t('diffSubtitle');
+  const cards=document.getElementById('diff-cards');
+  if(!cards) return;
+  cards.innerHTML='';
+  DIFFICULTIES.forEach((d,i)=>{
+    const cl=['ds-good','','ds-bad','ds-bad'][i];
+    const hcl=i===0?'ds-good':i<=1?'':'ds-bad';
+    const dcl=i===0?'ds-good':i===1?'':i===2?'ds-bad':'ds-bad';
+    const multCls=i===0?'ds-good':i===1?'':i>=2?'ds-bad':'';
+    const moneyCls=i===0?'ds-good':i===1?'':i>=2?'ds-bad':'';
+    const times=t('diffTimes');
+    const el=document.createElement('div');
+    el.className=`diff-card diff-${i}`;
+    el.onclick=()=>startWithDifficulty(i);
+    el.innerHTML=`<div class="diff-emoji">${d.emoji}</div>
+      <div class="diff-name">${tDef(d,'name')}</div>
+      <div class="diff-stake">${d.stake||['Beginner','White Stake','Red Stake','Black Stake'][i]}</div>
+      <div class="diff-stats">
+        <span>${t('diffTarget')} <b class="${multCls}">×${d.mult}</b></span>
+        <span>${t('diffMoney')} <b class="${moneyCls}">$${d.money}</b></span>
+        <span>${t('diffHands')} <b class="${hcl}">${d.hands}${times}</b></span>
+        <span>${t('diffDiscards')} <b class="${dcl}">${d.discards}${times}</b></span>
+      </div>`;
+    cards.appendChild(el);
+  });
+}
+
+function applyI18nStatic(){
+  // Play buttons
+  const bp=document.getElementById('btn-play'); if(bp) bp.innerHTML=`▶ ${t('play')}`;
+  const bd=document.getElementById('btn-discard'); if(bd) bd.innerHTML=`🗑 ${t('discard')}`;
+  const bl=document.getElementById('btn-leave'); if(bl) bl.textContent=t('leaveShop');
+  // Lang button (all instances)
+  document.querySelectorAll('.btn-lang,.btn[id="btn-lang"]').forEach(lb=>lb.textContent=CURR_LANG==='zh'?'EN':'中文');
+  const lb=document.getElementById('btn-lang'); if(lb) lb.textContent=CURR_LANG==='zh'?'EN':'中文';
+  const lb2=document.getElementById('btn-lang-diff'); if(lb2) lb2.textContent=CURR_LANG==='zh'?'EN':'中文';
+  // Counter labels
+  const cl=document.querySelectorAll('.clbl');
+  if(cl.length>=2){ cl[0].textContent=t('handsLbl'); cl[1].textContent=t('discardsLbl'); }
+  // Topbar labels
+  const jlbl=document.querySelector('.jlbl'); if(jlbl) jlbl.textContent=t('jokerLbl');
+  const ulbl=document.getElementById('handlv-lbl'); if(ulbl) ulbl.textContent=t('upgradeLbl');
+  const blbl=document.querySelector('#top-bar .info-box:nth-child(2) .lbl'); if(blbl) blbl.textContent=t('blindLbl');
+  // Blind select buttons
+  const bs=document.getElementById('btn-start'); if(bs) bs.textContent=t('startBtn');
+  const bh=document.getElementById('btn-help-bs'); if(bh) bh.textContent=t('helpBtn');
+  // Scoring dialog
+  const sc=document.getElementById('btn-sco-continue'); if(sc) sc.textContent=t('continue');
+  // Difficulty screen
+  renderDifficultyScreen();
   // Win screen
   const wt=document.getElementById('win-title'); if(wt) wt.textContent=t('winTitle');
   const wr=document.getElementById('btn-restart-win'); if(wr) wr.textContent=t('winRestart');
   // Gameover screen
   const gt=document.getElementById('go-title'); if(gt) gt.textContent=t('goTitle');
   const gr=document.getElementById('btn-restart'); if(gr) gr.textContent=t('goRestart');
+  // Win/gameover stats text
+  const ws=document.getElementById('win-stats-lbl'); if(ws) ws.textContent=t('winHandsLabel');
 }
 document.getElementById('jd-close').addEventListener('click',()=>{
   document.getElementById('joker-detail').style.display='none';
@@ -2273,6 +2277,7 @@ document.getElementById('sell-confirm').addEventListener('click',e=>{
 // =============================================
 // INIT — load save or show difficulty selection
 // =============================================
+applyI18nStatic(); // apply language on initial load
 if(loadGame()) {
   if(G.state === 'PLAYING') {
     renderPlaying();
