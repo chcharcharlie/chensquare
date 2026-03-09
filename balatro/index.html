@@ -506,6 +506,33 @@ body {
   </div>
 </div>
 
+<!-- VOUCHER CONFIRM -->
+<div id="voucher-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:350;align-items:center;justify-content:center;">
+  <div style="background:#12122a;border:2px solid #cc66ff;border-radius:16px;padding:22px;width:88%;max-width:340px;text-align:center;">
+    <div style="font-size:13px;color:#cc66ff;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">🎫 购买凭证</div>
+    <div id="vc-name" style="font-size:22px;font-weight:bold;color:#e888ff;margin-bottom:10px;"></div>
+    <div id="vc-desc" style="font-size:13px;color:#cc99ff;line-height:1.5;background:rgba(200,100,255,0.07);border-radius:10px;padding:12px;margin-bottom:18px;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="btn" id="vc-cancel" style="background:rgba(255,255,255,0.07);color:#8888aa;border:1px solid #3a3a6a;">取消</button>
+      <button class="btn" id="vc-buy" style="background:rgba(200,100,255,0.15);color:#cc66ff;border:1px solid #cc66ff66;font-size:15px;"></button>
+    </div>
+  </div>
+</div>
+
+<!-- SELL CONFIRM -->
+<div id="sell-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:350;align-items:center;justify-content:center;">
+  <div style="background:#12122a;border:2px solid #cd7f32;border-radius:16px;padding:22px;width:88%;max-width:340px;text-align:center;">
+    <div style="font-size:13px;color:#cd7f32;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">💰 卖出小丑牌</div>
+    <div id="sc-name" style="font-size:22px;font-weight:bold;color:#ffb347;margin-bottom:10px;"></div>
+    <div id="sc-desc" style="font-size:13px;color:#cc9966;line-height:1.5;background:rgba(200,130,50,0.07);border-radius:10px;padding:12px;margin-bottom:6px;"></div>
+    <div id="sc-price" style="font-size:16px;color:#ffd700;font-weight:bold;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="btn" id="sc-cancel" style="background:rgba(255,255,255,0.07);color:#8888aa;border:1px solid #3a3a6a;">取消</button>
+      <button class="btn" id="sc-sell" style="background:rgba(200,130,50,0.2);color:#ffb347;border:1px solid #cd7f3266;font-size:15px;"></button>
+    </div>
+  </div>
+</div>
+
 <!-- PLANET CONFIRM -->
 <div id="planet-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:350;align-items:center;justify-content:center;">
   <div style="background:#12122a;border:2px solid #4488ff;border-radius:16px;padding:22px;width:90%;max-width:360px;text-align:center;">
@@ -1470,12 +1497,21 @@ function renderShopItems(){
   }
 }
 
+let _pendingVoucher=null;
 function buyVoucher(v){
-  if(G.money<v.cost||G.boughtVouchers.has(v.id)) return;
+  _pendingVoucher=v;
+  document.getElementById('vc-name').textContent=tDef(v,'name');
+  document.getElementById('vc-desc').textContent=tDef(v,'desc');
+  document.getElementById('vc-buy').textContent=(CURR_LANG==='en'?'Buy':'确认购买')+' $'+v.cost;
+  document.getElementById('voucher-confirm').style.display='flex';
+}
+function confirmBuyVoucher(){
+  const v=_pendingVoucher; _pendingVoucher=null;
+  if(!v||G.money<v.cost||G.boughtVouchers.has(v.id)) return;
   G.money-=v.cost;
   G.boughtVouchers.add(v.id);
   v.sold=true;
-  v.apply(G); // apply permanent effect immediately
+  v.apply(G);
   saveGame(); renderShopItems();
 }
 
@@ -1499,7 +1535,21 @@ function openJokerConfirm(item) {
   document.getElementById('joker-confirm').style.display = 'flex';
 }
 
+let _pendingSellIdx=-1;
 function sellJoker(idx){
+  const jj=G.jokers[idx];
+  if(!jj) return;
+  const def=JOKER_DEFS.find(d=>d.id===jj.id);
+  const sv=Math.max(1,Math.ceil((def?def.cost:3)/2));
+  _pendingSellIdx=idx;
+  document.getElementById('sc-name').textContent=tDef(def,'name');
+  document.getElementById('sc-desc').textContent=tDef(def,'desc');
+  document.getElementById('sc-price').textContent=(CURR_LANG==='en'?`Sell for: +$${sv}`:`卖出可得：+$${sv}`);
+  document.getElementById('sc-sell').textContent=(CURR_LANG==='en'?'Confirm Sell':'确认卖出')+' +$'+sv;
+  document.getElementById('sell-confirm').style.display='flex';
+}
+function confirmSellJoker(){
+  const idx=_pendingSellIdx; _pendingSellIdx=-1;
   const jj=G.jokers[idx];
   if(!jj) return;
   const def=JOKER_DEFS.find(d=>d.id===jj.id);
@@ -1508,7 +1558,7 @@ function sellJoker(idx){
   G.money+=sv;
   saveGame();
   renderJokers();
-  renderShopItems(); // refresh sell list + joker slots
+  renderShopItems();
 }
 
 function openPlanetConfirm(item) {
@@ -2087,6 +2137,34 @@ document.getElementById('pc-buy').addEventListener('click',()=>{
 document.getElementById('planet-confirm').addEventListener('click',e=>{
   if(e.target===document.getElementById('planet-confirm')){
     document.getElementById('planet-confirm').style.display='none'; _pendingPlanet=null;
+  }
+});
+
+// Voucher confirm
+document.getElementById('vc-cancel').addEventListener('click',()=>{
+  document.getElementById('voucher-confirm').style.display='none'; _pendingVoucher=null;
+});
+document.getElementById('vc-buy').addEventListener('click',()=>{
+  document.getElementById('voucher-confirm').style.display='none';
+  confirmBuyVoucher();
+});
+document.getElementById('voucher-confirm').addEventListener('click',e=>{
+  if(e.target===document.getElementById('voucher-confirm')){
+    document.getElementById('voucher-confirm').style.display='none'; _pendingVoucher=null;
+  }
+});
+
+// Sell confirm
+document.getElementById('sc-cancel').addEventListener('click',()=>{
+  document.getElementById('sell-confirm').style.display='none'; _pendingSellIdx=-1;
+});
+document.getElementById('sc-sell').addEventListener('click',()=>{
+  document.getElementById('sell-confirm').style.display='none';
+  confirmSellJoker();
+});
+document.getElementById('sell-confirm').addEventListener('click',e=>{
+  if(e.target===document.getElementById('sell-confirm')){
+    document.getElementById('sell-confirm').style.display='none'; _pendingSellIdx=-1;
   }
 });
 
