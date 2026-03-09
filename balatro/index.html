@@ -888,14 +888,7 @@ const JOKER_DEFS = [
   {id:'J30',sym:'▲',col:'#c08010',name:'爆米花',name_en:'Popcorn',cost:5,desc:'初始+20倍率，每过一关-4倍率（耗尽后消失）',desc_en:'+20 Mult, -4 per round won (destroys at 0)',dynamic:true,initVal:20,
    apply(h,g,j){const v=j.val||0;return v>0?{am:v}:{};}},
   {id:'J31',sym:'□',col:'#204058',name:'蓝图',name_en:'Blueprint',cost:10,desc:'复制右侧小丑的效果',desc_en:'Copies the effect of the Joker to the right',
-   apply(h,g,j){
-     const idx=g.jokers.indexOf(j);
-     if(idx<0||idx>=g.jokers.length-1)return{};
-     const nxt=g.jokers[idx+1];
-     const nDef=JOKER_DEFS.find(d=>d.id===nxt.id);
-     if(!nDef||nDef.retrigger||nDef.perCard)return{};
-     return nDef.apply?nDef.apply(h,g,nxt):{};
-   }},
+   apply(h,g,j){ return _applyJokerCopy(h,g,j,'right'); }},
   {id:'J32',sym:'⊞',col:'#186030',name:'方块小丑',name_en:'Square Joker',cost:4,desc:'恰好打出4张牌时：+20筹码',desc_en:'+20 Chips if exactly 4 cards are played',
    apply(h,g,j){return h.n===4?{ac:20}:{};}},
   {id:'J33',sym:'⊙',col:'#602080',name:'独行侠',name_en:'Loner',cost:5,desc:'作为唯一小丑时：×3倍率',desc_en:'×3 Mult if this is your only Joker',
@@ -913,15 +906,7 @@ const JOKER_DEFS = [
    retrigger(c,hr,g,j){return(j.val||0)>0?1:0;}},
   // ── New Jokers ──
   {id:'J39',sym:'🧠',col:'#5028a0',name:'头脑风暴',name_en:'Brainstorm',cost:10,desc:'复制最左侧小丑的效果',desc_en:'Copies the effect of the leftmost Joker',
-   apply(h,g,j){
-     const idx=g.jokers.indexOf(j);
-     if(idx<=0)return{}; // no joker to the left, or we ARE the leftmost
-     const leftmost=g.jokers[0];
-     if(leftmost===j)return{};
-     const lDef=JOKER_DEFS.find(d=>d.id===leftmost.id);
-     if(!lDef||lDef.retrigger||lDef.perCard||lDef.id==='J31'||lDef.id==='J39')return{};
-     return lDef.apply?lDef.apply(h,g,leftmost):{};
-   }},
+   apply(h,g,j){ return _applyJokerCopy(h,g,j,'left'); }},
   {id:'J40',sym:'🥾',col:'#287838',name:'远足者',name_en:'Hiker',cost:6,desc:'每张打出的牌永久+3筹码',desc_en:'Each played card permanently gains +3 Chips',
    perCard(c,hr,g,j){c._bonus=(c._bonus||0)+3; return{ac:3};}},
   {id:'J41',sym:'✂',col:'#c86010',name:'快捷方式',name_en:'Shortcut',cost:7,desc:'顺子允许间隔一格（如A/3/5/7/9也算顺子）',desc_en:'Straights can have gaps of 1 (e.g. A/3/5/7/9 counts)',
@@ -1131,6 +1116,35 @@ const G = {
 // =============================================
 // SCORE CALCULATION (supports retrigger + per-card effects)
 // =============================================
+// Helper: Blueprint copies right neighbor; Brainstorm copies leftmost joker.
+// For perCard jokers, sums up each card's contribution and returns total ac/am/xm.
+function _applyJokerCopy(h, g, j, dir){
+  const idx=g.jokers.indexOf(j);
+  let target;
+  if(dir==='right'){
+    if(idx<0||idx>=g.jokers.length-1) return {};
+    target=g.jokers[idx+1];
+  } else { // 'left'
+    if(idx<=0) return {};
+    target=g.jokers[0];
+    if(target===j) return {};
+  }
+  const tDef=JOKER_DEFS.find(d=>d.id===target.id);
+  if(!tDef||tDef.retrigger) return {};
+  // Can't copy another copy joker (avoid infinite recursion)
+  if(tDef.id==='J31'||tDef.id==='J39') return {};
+  if(tDef.perCard){
+    // Sum perCard effects over all scored cards
+    let ac=0,am=0,xm=1;
+    for(const card of h.sc){
+      const r=tDef.perCard(card,h,g,target)||{};
+      ac+=(r.ac||0); am+=(r.am||0); if(r.xm) xm*=r.xm;
+    }
+    return {ac, am, xm:xm===1?undefined:xm};
+  }
+  return tDef.apply?tDef.apply(h,g,target):{};
+}
+
 function calcScore(hr, selCards){
   const base=G.getBase(hr.type);
   let chips=base.bc, mult=base.bm;
