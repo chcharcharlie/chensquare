@@ -2133,7 +2133,8 @@ function startWithDifficulty(d) {
     money:diff.money, handsLeft:diff.hands, discardsLeft:diff.discards,
     jokerSlots:5, shopRerollCost:5,
     jokers:[], handLevels:{}, handsPlayed:0, deck:null, hand:[],
-    bossEffect:null, bossDebuffSuit:null, playedTypes:[], shopItems:null,
+    bossEffect:null, bossDebuffSuit:null, _anteBossEffect:null, _anteBossDebuffSuit:null,
+    playedTypes:[], shopItems:null,
     handTypeCounts:{}, boughtVouchers:new Set(), voucherEffects:{extraShopJokers:0,discount:0}
   });
   renderBlindSelect();
