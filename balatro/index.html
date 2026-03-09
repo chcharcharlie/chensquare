@@ -1108,8 +1108,9 @@ function _applyJokerCopy(h, g, j, dir, depth=0){
 }
 
 // Resolve what a copy joker (Blueprint/Brainstorm) ultimately points to.
-// Returns the target JOKER_DEF (could be a normal joker), or null if unresolvable.
-function resolveCopyTargetDef(j, g, depth=0){
+// includeRetrigger=false (default): returns null if target is a retrigger joker (for Step 2 perCard use).
+// includeRetrigger=true: returns the target even if it has retrigger (for Step 1 retrigger use).
+function resolveCopyTargetDef(j, g, depth=0, includeRetrigger=false){
   if(depth>3) return null;
   const def=JOKER_DEFS.find(d=>d.id===j.id);
   if(!def) return null;
@@ -1126,9 +1127,10 @@ function resolveCopyTargetDef(j, g, depth=0){
     return def; // not a copy joker
   }
   const tDef=JOKER_DEFS.find(d=>d.id===target.id);
-  if(!tDef||tDef.retrigger) return null;
+  if(!tDef) return null;
+  if(tDef.retrigger) return includeRetrigger ? tDef : null;
   // Recursively resolve if target is also a copy joker
-  if(tDef.id==='J31'||tDef.id==='J39') return resolveCopyTargetDef(target,g,depth+1);
+  if(tDef.id==='J31'||tDef.id==='J39') return resolveCopyTargetDef(target,g,depth+1,includeRetrigger);
   return tDef;
 }
 
@@ -1142,11 +1144,24 @@ function calcScore(hr, selCards){
   const retrigMap=new Map(); // card → extra trigger count
   for(const j of G.jokers){
     const def=JOKER_DEFS.find(d=>d.id===j.id);
-    if(!def?.retrigger) continue;
-    selCards.forEach((card,idx)=>{
-      const extra=def.retrigger(card,hr,G,j,idx);
-      if(extra>0) retrigMap.set(card,(retrigMap.get(card)||0)+extra);
-    });
+    // Direct retrigger joker
+    if(def?.retrigger){
+      selCards.forEach((card,idx)=>{
+        const extra=def.retrigger(card,hr,G,j,idx);
+        if(extra>0) retrigMap.set(card,(retrigMap.get(card)||0)+extra);
+      });
+      continue;
+    }
+    // Copy joker (Blueprint/Brainstorm) — check if resolved target has retrigger
+    if(def?.id==='J31'||def?.id==='J39'){
+      const tgtDef=resolveCopyTargetDef(j,G,0,true); // includeRetrigger=true
+      if(tgtDef?.retrigger){
+        selCards.forEach((card,idx)=>{
+          const extra=tgtDef.retrigger(card,hr,G,j,idx);
+          if(extra>0) retrigMap.set(card,(retrigMap.get(card)||0)+extra);
+        });
+      }
+    }
   }
 
   // Step 2: score each card (with retriggering) + per-card joker effects
