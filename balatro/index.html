@@ -1111,12 +1111,12 @@ function calcScore(hr, selCards){
     const card=selCards[ci];
     const triggers=1+(retrigMap.get(card)||0);
     const debuffed=G.bossEffect==='HEAD'&&card.suit===G.bossDebuffSuit;
-    for(let t=0;t<triggers;t++){
-      const suf=t>0?' ↺':'';
+    for(let ti=0;ti<triggers;ti++){
+      const suf=ti>0?' ↺':'';
       if(debuffed){
-        log.push({t:`${card.rank}${card.suit}${suf}(${t('debuffed')})`,kind:'chips',v:0,sfx:t('sfxChips'),cardRef:card,retrig:t>0});
+        log.push({t:`${card.rank}${card.suit}${suf}(${t('debuffed')})`,kind:'chips',v:0,sfx:t('sfxChips'),cardRef:card,retrig:ti>0});
       } else {
-        log.push({t:`${card.rank}${card.suit}${suf}`,kind:'chips',v:card.chips,sfx:t('sfxChips'),cardRef:card,retrig:t>0});
+        log.push({t:`${card.rank}${card.suit}${suf}`,kind:'chips',v:card.chips,sfx:t('sfxChips'),cardRef:card,retrig:ti>0});
         chips+=card.chips;
       }
       for(const j of G.jokers){
@@ -1125,9 +1125,9 @@ function calcScore(hr, selCards){
         if(def?.perCard){
           const jn=tDef(def,'name');
           const r=def.perCard(card,hr,G);
-          if(r.ac){chips+=r.ac; log.push({t:jn+suf,kind:'chips',v:r.ac,sfx:t('sfxChips'),jokerRef:def.id,retrig:t>0});}
-          if(r.am){mult+=r.am;  log.push({t:jn+suf,kind:'mult',v:r.am,sfx:t('sfxMult'),jokerRef:def.id,retrig:t>0});}
-          if(r.xm){mult=+(mult*r.xm).toFixed(1); log.push({t:jn+suf,kind:'xmult',v:r.xm,sfx:t('sfxXmult'),jokerRef:def.id,retrig:t>0});}
+          if(r.ac){chips+=r.ac; log.push({t:jn+suf,kind:'chips',v:r.ac,sfx:t('sfxChips'),jokerRef:def.id,retrig:ti>0});}
+          if(r.am){mult+=r.am;  log.push({t:jn+suf,kind:'mult',v:r.am,sfx:t('sfxMult'),jokerRef:def.id,retrig:ti>0});}
+          if(r.xm){mult=+(mult*r.xm).toFixed(1); log.push({t:jn+suf,kind:'xmult',v:r.xm,sfx:t('sfxXmult'),jokerRef:def.id,retrig:ti>0});}
         }
         // Copy jokers whose target is a perCard joker — run in Step 2 to get retrigger
         if(def?.id==='J31'||def?.id==='J39'){
@@ -1135,9 +1135,9 @@ function calcScore(hr, selCards){
           if(tgt?.perCard){
             const jn=tDef(def,'name');
             const r=tgt.perCard(card,hr,G);
-            if(r.ac){chips+=r.ac; log.push({t:jn+suf,kind:'chips',v:r.ac,sfx:t('sfxChips'),jokerRef:def.id,retrig:t>0});}
-            if(r.am){mult+=r.am;  log.push({t:jn+suf,kind:'mult',v:r.am,sfx:t('sfxMult'),jokerRef:def.id,retrig:t>0});}
-            if(r.xm){mult=+(mult*r.xm).toFixed(1); log.push({t:jn+suf,kind:'xmult',v:r.xm,sfx:t('sfxXmult'),jokerRef:def.id,retrig:t>0});}
+            if(r.ac){chips+=r.ac; log.push({t:jn+suf,kind:'chips',v:r.ac,sfx:t('sfxChips'),jokerRef:def.id,retrig:ti>0});}
+            if(r.am){mult+=r.am;  log.push({t:jn+suf,kind:'mult',v:r.am,sfx:t('sfxMult'),jokerRef:def.id,retrig:ti>0});}
+            if(r.xm){mult=+(mult*r.xm).toFixed(1); log.push({t:jn+suf,kind:'xmult',v:r.xm,sfx:t('sfxXmult'),jokerRef:def.id,retrig:ti>0});}
           }
         }
       }
