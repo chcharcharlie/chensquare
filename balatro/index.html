@@ -76,10 +76,10 @@ body {
 .info-box { background: rgba(255,255,255,0.06); border:1px solid #3a3a6a; border-radius:8px; padding:4px 12px; text-align:center; }
 .info-box .lbl { font-size:10px; color:#8888aa; text-transform:uppercase; }
 .info-box .val { font-size:18px; font-weight:bold; }
-#score-wrap { flex:1; }
-#score-bar-bg { background:rgba(0,0,0,0.35); border:1px solid #3a3a6a; border-radius:20px; height:28px; overflow:hidden; position:relative; }
+#score-wrap { padding:4px 12px 2px; flex-shrink:0; }
+#score-bar-bg { background:rgba(0,0,0,0.35); border:1px solid #3a3a6a; border-radius:20px; height:22px; overflow:hidden; position:relative; }
 #score-bar { height:100%; background:linear-gradient(90deg,#4a90e2,#9a4ae2); border-radius:20px; transition:width 0.5s; min-width:0; }
-#score-bar-txt { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:12px; white-space:nowrap; }
+#score-bar-txt { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:11px; white-space:nowrap; }
 
 /* BOSS BANNER */
 #boss-banner { display:none; background:linear-gradient(135deg,#2a0000,#1a0000); border-bottom:2px solid #ff4444; color:#ff8888; text-align:center; padding:6px; font-size:13px; flex-shrink:0; }
@@ -292,11 +292,12 @@ body {
   #card-area { gap:3px; padding:4px 6px; flex-wrap:nowrap; align-items:center; justify-content:center; }
 
   /* Top bar: compact */
-  #top-bar { padding:5px 8px; gap:5px; flex-shrink:0; }
+  #top-bar { padding:4px 8px; gap:5px; flex-shrink:0; }
   .info-box { padding:2px 7px; }
   .info-box .lbl { font-size:9px; }
   .info-box .val { font-size:13px; }
-  #score-bar-bg { height:22px; }
+  #score-wrap { padding:2px 8px 2px; }
+  #score-bar-bg { height:18px; }
   #score-bar-txt { font-size:10px; }
 
   /* Boss banner: smaller */
@@ -390,18 +391,22 @@ body {
 <div id="screen-playing" class="screen">
   <div id="top-bar">
     <div class="info-box"><div class="lbl">Ante</div><div class="val" id="info-ante">1</div></div>
-    <div class="info-box"><div class="lbl">盲注</div><div class="val" id="info-blind">小盲</div></div>
+    <div class="info-box"><div class="lbl" id="blind-lbl-tb">盲注</div><div class="val" id="info-blind">小盲</div></div>
     <div class="info-box"><div class="lbl">💰</div><div class="val" id="info-money">$4</div></div>
-    <div class="info-box" id="info-seed-box" style="display:none;cursor:pointer;opacity:0.6;" title="点击复制关卡码"><div class="lbl" id="info-seed-lbl">🎲</div><div class="val" id="info-seed" style="font-size:10px;letter-spacing:0.5px;"></div></div>
-    <div id="score-wrap">
-      <div id="score-bar-bg">
-        <div id="score-bar" style="width:0%"></div>
-        <div id="score-bar-txt">0 / 300</div>
-      </div>
+    <div style="flex:1"></div>
+    <div id="info-seed-box" style="display:none;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid #2a2a4a;border-radius:8px;padding:2px 7px;text-align:center;" title="点击复制关卡码">
+      <div style="font-size:9px;color:#555577;line-height:1.2;">🎲</div>
+      <div id="info-seed" style="font-size:11px;font-weight:bold;color:#6666aa;letter-spacing:0.5px;"></div>
     </div>
     <button class="btn" id="btn-lang" style="background:rgba(255,255,255,0.1);color:#aaaacc;padding:5px 8px;font-size:12px;border:1px solid #3a3a6a;min-width:36px;">EN</button>
     <button class="btn" id="btn-help" style="background:rgba(255,255,255,0.1);color:#aaaacc;padding:5px 10px;font-size:13px;border:1px solid #3a3a6a;">❓</button>
     <button class="btn" id="btn-newgame" style="background:rgba(255,80,80,0.15);color:#ff8888;padding:5px 10px;font-size:13px;border:1px solid #5a2a2a;" title="放弃当前游戏，重新开始">↺</button>
+  </div>
+  <div id="score-wrap">
+    <div id="score-bar-bg">
+      <div id="score-bar" style="width:0%"></div>
+      <div id="score-bar-txt">0 / 300</div>
+    </div>
   </div>
   <div id="boss-banner"></div>
   <div id="joker-area">
@@ -2280,7 +2285,7 @@ function applyI18nStatic(){
   // Topbar labels
   const jlbl=document.querySelector('.jlbl'); if(jlbl) jlbl.textContent=t('jokerLbl');
   const ulbl=document.getElementById('handlv-lbl'); if(ulbl) ulbl.textContent=t('upgradeLbl');
-  const blbl=document.querySelector('#top-bar .info-box:nth-child(2) .lbl'); if(blbl) blbl.textContent=t('blindLbl');
+  const blbl=document.getElementById('blind-lbl-tb'); if(blbl) blbl.textContent=t('blindLbl');
   // Blind select buttons
   const bs=document.getElementById('btn-start'); if(bs) bs.textContent=t('startBtn');
   const bh=document.getElementById('btn-help-bs'); if(bh) bh.textContent=t('helpBtn');
