@@ -1321,7 +1321,7 @@ function renderPlaying(){
 
 function renderShop(){
   G.shopRerollCost = 5; // reset cost when entering new shop
-  if(!G.shopItems) genShop(); // only generate if not already set (prevents free refresh)
+  if(!G.shopItems){ genShop(); saveGame(); } // generate + immediately persist to prevent free refresh
   document.getElementById('shop-money').textContent='$'+G.money;
   renderShopItems();
   showScreen('screen-shop');
