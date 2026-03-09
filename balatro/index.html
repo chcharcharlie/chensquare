@@ -365,6 +365,11 @@ body {
   </div>
   <h1>🃏 Balatro Lite</h1>
   <p id="diff-subtitle" style="font-size:13px;color:#8888aa;text-align:center;max-width:380px;"></p>
+  <div id="seed-row" style="display:flex;align-items:center;gap:8px;margin-bottom:-8px;">
+    <label id="seed-label" for="seed-input" style="font-size:12px;color:#8888aa;white-space:nowrap;">🎲 关卡码（可选）</label>
+    <input id="seed-input" type="number" min="1" max="16777215" placeholder="随机" style="width:100px;background:rgba(255,255,255,0.07);border:1px solid #3a3a6a;border-radius:8px;color:#ccccee;padding:5px 10px;font-size:13px;text-align:center;outline:none;">
+    <span id="seed-hint" style="font-size:11px;color:#555577;"></span>
+  </div>
   <div id="diff-cards" class="diff-cards"></div>
 </div>
 
@@ -387,6 +392,7 @@ body {
     <div class="info-box"><div class="lbl">Ante</div><div class="val" id="info-ante">1</div></div>
     <div class="info-box"><div class="lbl">盲注</div><div class="val" id="info-blind">小盲</div></div>
     <div class="info-box"><div class="lbl">💰</div><div class="val" id="info-money">$4</div></div>
+    <div class="info-box" id="info-seed-box" style="display:none;cursor:pointer;opacity:0.6;" title="点击复制关卡码"><div class="lbl" id="info-seed-lbl">🎲</div><div class="val" id="info-seed" style="font-size:10px;letter-spacing:0.5px;"></div></div>
     <div id="score-wrap">
       <div id="score-bar-bg">
         <div id="score-bar" style="width:0%"></div>
@@ -597,6 +603,33 @@ const CHIP_VAL = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':10
 const RANK_ORD = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14};
 
 // =============================================
+// =============================================
+// SEEDED RNG
+// =============================================
+let _rngState = 0;
+function _mulberry32(seed){
+  // mulberry32 — fast, good quality seeded RNG
+  let s = seed >>> 0;
+  return function(){
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let rng = Math.random.bind(Math); // default: unseeded
+let G_SEED = null; // null = random (shown as "随机")
+
+function initRng(seed){
+  if(seed == null || seed === ''){
+    // Random: pick a seed, store it so it's shareable
+    G_SEED = (Math.random() * 0xFFFFFF | 0) + 1;
+  } else {
+    G_SEED = parseInt(seed, 10) || 1;
+  }
+  rng = _mulberry32(G_SEED);
+}
+
 // i18n
 // =============================================
 let CURR_LANG = localStorage.getItem('balatro_lang') || 'zh';
@@ -629,6 +662,7 @@ const STRINGS = {
     winTitle:'🏆 通关！',winSub:'太厉害了！',winHandsLabel:'共出牌',winTimes:'次',
     winRestart:'再来一局',
     goTitle:'💀 游戏结束',goRestart:'重新开始',
+    seedLabel:'🎲 关卡码（可选）',seedPlaceholder:'随机',
     rcTitle:'放弃当前游戏？',rcSub:'进度不会保存',rcCancel:'取消',rcConfirm:'放弃重开',
     shopTitle:'🛒 商店',nextAnte:'下一关 →',
     jcHeader:'🃏 购买小丑牌',jcCancel:'取消',jcBuyBtn:'确认购买',
@@ -665,6 +699,7 @@ const STRINGS = {
     winTitle:'🏆 You Win!',winSub:'Amazing!',winHandsLabel:'Hands played',winTimes:'',
     winRestart:'Play Again',
     goTitle:'💀 Game Over',goRestart:'Restart',
+    seedLabel:'🎲 Seed (optional)',seedPlaceholder:'Random',
     rcTitle:'Abandon current game?',rcSub:'Progress will not be saved',rcCancel:'Cancel',rcConfirm:'Restart',
     shopTitle:'🛒 Shop',nextAnte:'Next Round →',
     jcHeader:'🃏 Buy Joker',jcCancel:'Cancel',jcBuyBtn:'Buy',
@@ -748,7 +783,7 @@ const JOKER_DEFS = [
   {id:'J09',sym:'☽',col:'#202870',name:'神秘巅峰',name_en:'Mystic Summit',cost:5,desc:'弃牌次数为0时：+15 倍率',desc_en:'+15 Mult when 0 discards remain',
    apply(h,g){return g.discardsLeft===0?{am:15}:{};}},
   {id:'J10',sym:'?',col:'#484860',name:'印错牌',name_en:'Misprint',cost:4,desc:'随机 +0~23 倍率',desc_en:'+0 to +23 random Mult',
-   apply(h,g){return {am:Math.floor(Math.random()*24)};}},
+   apply(h,g){return {am:Math.floor(rng()*24)};}},
   {id:'J11',sym:'★',col:'#208838',name:'忠诚卡',name_en:'Loyalty Card',cost:5,desc:'每出6次牌：×4 倍率',desc_en:'×4 Mult every 6 hands played',
    apply(h,g){return (g.handsPlayed>0&&g.handsPlayed%6===0)?{xm:4}:{};}},
   {id:'J12',sym:'↑',col:'#c04010',name:'举拳头',name_en:'Raised Fist',cost:5,desc:'手中最低点数×2 作为+倍率（使用未打出的手牌）',desc_en:'Lowest held card rank ×2 added to Mult',
@@ -866,7 +901,7 @@ function getAvailableVoucher(g){
   });
   if(available.length===0) return null;
   // Pick randomly (like Balatro's shuffled voucher pool)
-  return available[Math.floor(Math.random()*available.length)];
+  return available[Math.floor(rng()*available.length)];
 }
 
 // =============================================
@@ -887,7 +922,7 @@ class Deck {
   }
   shuffle(){
     for(let i=this.pile.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
+      const j=Math.floor(rng()*(i+1));
       [this.pile[i],this.pile[j]]=[this.pile[j],this.pile[i]];
     }
   }
@@ -998,9 +1033,9 @@ const G = {
   setupBoss(){
     // Generate boss for this ante ONCE at blind=0, don't regenerate if already set.
     if(this.blind===0 && !this._anteBossEffect){
-      const e=BOSS_EFFECTS[Math.floor(Math.random()*BOSS_EFFECTS.length)];
+      const e=BOSS_EFFECTS[Math.floor(rng()*BOSS_EFFECTS.length)];
       this._anteBossEffect=e.id;
-      this._anteBossDebuffSuit=e.id==='HEAD'?SUITS[Math.floor(Math.random()*4)]:null;
+      this._anteBossDebuffSuit=e.id==='HEAD'?SUITS[Math.floor(rng()*4)]:null;
     }
     // Apply boss effect only when actually playing the boss blind
     if(this.blind===2){
@@ -1167,8 +1202,8 @@ function calcScore(hr, selCards){
 // =============================================
 function genShop(){
   const owned=new Set(G.jokers.map(j=>j.id));
-  const avail=JOKER_DEFS.filter(j=>!owned.has(j.id)).sort(()=>Math.random()-0.5);
-  const planets=[...PLANET_DEFS].sort(()=>Math.random()-0.5);
+  const avail=JOKER_DEFS.filter(j=>!owned.has(j.id)).sort(()=>rng()-0.5);
+  const planets=[...PLANET_DEFS].sort(()=>rng()-0.5);
   const discount=G.voucherEffects?.discount||0;
   const extraJ=(G.voucherEffects?.extraShopJokers||0);
   const extraP=(G.voucherEffects?.extraPlanets||0);
@@ -1200,6 +1235,18 @@ function renderTopBar(){
   // Update lang button
   const lb=document.getElementById('btn-lang');
   if(lb) lb.textContent=CURR_LANG==='zh'?'EN':'中文';
+  // Show seed in top bar
+  const sb=document.getElementById('info-seed-box');
+  const sv=document.getElementById('info-seed');
+  if(sb&&sv&&G_SEED){
+    sb.style.display='';
+    sv.textContent=G_SEED;
+    sb.onclick=()=>{
+      navigator.clipboard?.writeText(String(G_SEED)).then(()=>{
+        const old=sv.textContent; sv.textContent='✓'; setTimeout(()=>sv.textContent=old,1200);
+      });
+    };
+  } else if(sb){ sb.style.display='none'; }
 }
 
 function renderHandLevels(){
@@ -1671,6 +1718,7 @@ function saveGame() {
   try {
     const s = {
       ante: G.ante, blind: G.blind, score: G.score, money: G.money,
+      seed: G_SEED,
       handsLeft: G.handsLeft, discardsLeft: G.discardsLeft, difficulty: G.difficulty??1,
       jokerSlots: G.jokerSlots||5, shopRerollCost: G.shopRerollCost||5,
       jokers: G.jokers, handLevels: G.handLevels, handsPlayed: G.handsPlayed,
@@ -1703,6 +1751,7 @@ function loadGame() {
     Object.assign(G, {
       ante: s.ante, blind: s.blind, score: s.score, money: s.money,
       handsLeft: s.handsLeft, discardsLeft: s.discardsLeft, difficulty: s.difficulty??1,
+      // Restore seed reference (RNG state cannot be restored, but seed is shown for reference)
       jokerSlots: s.jokerSlots||5, shopRerollCost: s.shopRerollCost||5,
       jokers: s.jokers || [], handLevels: s.handLevels || {},
       handsPlayed: s.handsPlayed || 0,
@@ -1738,6 +1787,7 @@ function loadGame() {
     } else {
       G.shopItems = null;
     }
+    if(s.seed) { G_SEED = s.seed; } // restore seed reference for display
     return true;
   } catch(e) {
     console.warn('Load failed', e);
@@ -2005,7 +2055,8 @@ function afterScoring(){
       if(G.ante>=8){
         G.state='GAME_WIN';
         clearSave();
-        document.getElementById('win-stats').textContent=CURR_LANG==='en'?`Hands played: ${G.handsPlayed}`:`共出牌 ${G.handsPlayed} 次，太厉害了！`;
+        const seedTxt=G_SEED?(CURR_LANG==='en'?` · Seed: ${G_SEED}`:` · 关卡码: ${G_SEED}`):'';
+        document.getElementById('win-stats').textContent=(CURR_LANG==='en'?`Hands played: ${G.handsPlayed}`:`共出牌 ${G.handsPlayed} 次，太厉害了！`)+seedTxt;
         showScreen('screen-win'); return;
       }
       G.ante++; G.blind=0; G.state='SHOP';
@@ -2023,9 +2074,10 @@ function afterScoring(){
   if(G.handsLeft<=0){
     G.state='GAME_OVER';
     clearSave();
-    document.getElementById('go-stats').textContent=CURR_LANG==='en'
+    const goSeedTxt=G_SEED?(CURR_LANG==='en'?` · Seed: ${G_SEED}`:` · 关卡码: ${G_SEED}`):'';
+    document.getElementById('go-stats').textContent=(CURR_LANG==='en'
       ?`Ante ${G.ante}/8 · ${tBlind(G.blind)} · ${G.score.toLocaleString()} / ${G.target.toLocaleString()}`
-      :`Ante ${G.ante}/8，${BLIND_NAMES[G.blind]}，${G.score.toLocaleString()} / ${G.target.toLocaleString()} 分`;
+      :`Ante ${G.ante}/8，${BLIND_NAMES[G.blind]}，${G.score.toLocaleString()} / ${G.target.toLocaleString()} 分`)+goSeedTxt;
     showScreen('screen-gameover'); return;
   }
 
@@ -2073,6 +2125,8 @@ async function discard(){
 
 function startWithDifficulty(d) {
   const diff = DIFFICULTIES[d];
+  const seedInput = document.getElementById('seed-input');
+  initRng(seedInput ? seedInput.value.trim() : null);
   clearSave();
   Object.assign(G,{
     state:'BLIND_SELECT', ante:1, blind:0, score:0, difficulty:d,
@@ -2253,6 +2307,9 @@ function applyI18nStatic(){
   // Hand level tooltip labels
   const htcl=document.getElementById('ht-chips-lbl'); if(htcl) htcl.textContent=t('sfxChips');
   const html=document.getElementById('ht-mult-lbl'); if(html) html.textContent=t('sfxMult');
+  // Seed row
+  const sl=document.getElementById('seed-label'); if(sl) sl.textContent=t('seedLabel');
+  const si=document.getElementById('seed-input'); if(si) si.placeholder=t('seedPlaceholder');
   // Difficulty screen
   renderDifficultyScreen();
   // Win screen
