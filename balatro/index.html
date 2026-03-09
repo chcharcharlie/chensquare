@@ -109,7 +109,7 @@ body {
 .joker-slot { border:2px dashed #2e2e4e; border-radius:9px; width:46px; min-width:46px; height:64px; display:flex; align-items:center; justify-content:center; color:#2e2e4e; font-size:18px; flex-shrink:0; }
 
 /* HAND TYPE */
-#hand-type-display { text-align:center; padding:6px; font-size:20px; font-weight:bold; color:#ffd700; min-height:40px; text-shadow:0 0 10px rgba(255,215,0,0.4); flex-shrink:0; }
+#hand-type-display { text-align:center; padding:6px; font-size:16px; font-weight:bold; color:#ffd700; min-height:40px; text-shadow:0 0 10px rgba(255,215,0,0.4); flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 /* CARD AREA */
 #card-area { flex:1; display:flex; align-items:center; justify-content:center; padding:8px 16px; gap:7px; flex-wrap:wrap; overflow:hidden; }
@@ -424,10 +424,22 @@ body {
   <div id="card-area"></div>
   <div id="action-bar">
     <button class="btn btn-blue" id="btn-play" disabled>▶ 出牌</button>
-    <button class="btn btn-red" id="btn-discard" disabled>🗑 弃牌</button>
-    <div style="flex:1"></div>
     <div class="counter"><div class="clbl">出牌次数</div><div class="cval" id="hands-left">3</div></div>
+    <div style="flex:1"></div>
     <div class="counter"><div class="clbl">弃牌次数</div><div class="cval" id="discards-left">3</div></div>
+    <button class="btn btn-red" id="btn-discard" disabled>🗑 弃牌</button>
+  </div>
+</div>
+
+<!-- RESTART CONFIRM -->
+<div id="restart-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:400;align-items:center;justify-content:center;">
+  <div style="background:#1e1a2a;border:2px solid #5a2a2a;border-radius:16px;padding:24px 28px;max-width:300px;width:90%;text-align:center;">
+    <div style="font-size:18px;font-weight:bold;color:#ff8888;margin-bottom:10px;" id="rc-title">放弃当前游戏？</div>
+    <div style="font-size:13px;color:#aaaacc;margin-bottom:20px;" id="rc-sub">进度不会保存</div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button class="btn" id="btn-rc-cancel" style="background:rgba(255,255,255,0.08);color:#aaaacc;border:1px solid #3a3a6a;">取消</button>
+      <button class="btn btn-red" id="btn-rc-confirm">放弃重开</button>
+    </div>
   </div>
 </div>
 
@@ -617,6 +629,7 @@ const STRINGS = {
     winTitle:'🏆 通关！',winSub:'太厉害了！',winHandsLabel:'共出牌',winTimes:'次',
     winRestart:'再来一局',
     goTitle:'💀 游戏结束',goRestart:'重新开始',
+    rcTitle:'放弃当前游戏？',rcSub:'进度不会保存',rcCancel:'取消',rcConfirm:'放弃重开',
     diffTitle:'选择难度',diffSubtitle:'难度越高分数倍率越大',
     helpTitle:'游戏规则',
   },
@@ -645,6 +658,7 @@ const STRINGS = {
     winTitle:'🏆 You Win!',winSub:'Amazing!',winHandsLabel:'Hands played',winTimes:'',
     winRestart:'Play Again',
     goTitle:'💀 Game Over',goRestart:'Restart',
+    rcTitle:'Abandon current game?',rcSub:'Progress will not be saved',rcCancel:'Cancel',rcConfirm:'Restart',
     diffTitle:'Choose Difficulty',diffSubtitle:'Higher difficulty = higher score targets',
     helpTitle:'How to Play',
   }
@@ -1344,7 +1358,17 @@ function updateHTDisplay(){
   const lv=G.handLevels[hr.type]||1;
   const lvBadge=lv>1?` Lv.${lv}`:'';
   const htName=tDef(HTYPES[hr.type],'name');
-  let txt=htName+lvBadge+' ✨';
+  // Base score preview: hand chips + card values (excl. boss-debuffed), hand mult only
+  const base=G.getBase(hr.type);
+  let prevChips=base.bc;
+  for(const card of sel){
+    const debuffed=G.bossEffect==='HEAD'&&card.suit===G.bossDebuffSuit;
+    if(!debuffed) prevChips+=card.chips;
+  }
+  const prevMult=base.bm;
+  const chipsTxt=CURR_LANG==='en'?`${prevChips} Chips`:`${prevChips} 筹`;
+  const multTxt=CURR_LANG==='en'?`${prevMult} Mult`:`${prevMult} 倍`;
+  let txt=`${htName}${lvBadge} ✨  ${chipsTxt} × ${multTxt}`;
   if(G.bossEffect==='EYE'&&G.playedTypes.includes(hr.type)) txt+=CURR_LANG==='en'?' ❌(used)':' ❌(已用过)';
   document.getElementById('hand-type-display').textContent=txt;
 }
@@ -2088,6 +2112,9 @@ document.getElementById('btn-help-close').addEventListener('click', closeHelp);
 document.getElementById('btn-help-close2').addEventListener('click', closeHelp);
 document.getElementById('help-overlay').addEventListener('click', e=>{ if(e.target===document.getElementById('help-overlay')) closeHelp(); });
 
+document.getElementById('btn-rc-cancel').addEventListener('click',()=>{ document.getElementById('restart-confirm').style.display='none'; });
+document.getElementById('btn-rc-confirm').addEventListener('click',()=>{ document.getElementById('restart-confirm').style.display='none'; restart(); });
+document.getElementById('restart-confirm').addEventListener('click',e=>{ if(e.target===document.getElementById('restart-confirm')) document.getElementById('restart-confirm').style.display='none'; });
 document.getElementById('btn-start').addEventListener('click',()=>{ G.startBlind(); saveGame(); renderPlaying(); });
 document.getElementById('btn-play').addEventListener('click',playHand);
 document.getElementById('btn-discard').addEventListener('click',discard);
@@ -2106,7 +2133,12 @@ document.getElementById('btn-reroll').addEventListener('click',()=>{
 document.getElementById('btn-restart').addEventListener('click',restart);
 document.getElementById('btn-restart-win').addEventListener('click',restart);
 document.getElementById('btn-newgame').addEventListener('click',()=>{
-  if(confirm('放弃当前游戏，重新开始？')) restart();
+  document.getElementById('rc-title').textContent=t('rcTitle');
+  document.getElementById('rc-sub').textContent=t('rcSub');
+  document.getElementById('btn-rc-cancel').textContent=t('rcCancel');
+  document.getElementById('btn-rc-confirm').textContent=t('rcConfirm');
+  document.getElementById('restart-confirm').style.display='flex';
+  if(false) restart();
 });
 function toggleLang(){
   CURR_LANG = CURR_LANG==='zh'?'en':'zh';
