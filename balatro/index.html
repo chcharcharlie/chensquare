@@ -650,7 +650,7 @@ const STRINGS = {
     startBtn:'⚔️ 开始！',helpBtn:'❓ 游戏规则',
     handsLbl:'出牌次数',discardsLbl:'弃牌次数',
     diffTarget:'目标分',diffMoney:'初始金',diffHands:'出牌',diffDiscards:'弃牌',diffTimes:'次',
-    diffRed:'小盲注不给奖励金',diffBlack:'30%概率买到永恒小丑',
+    diffRed:'小盲注不给奖励金',diffGreen:'分数目标更高（Green档）',diffBlack:'30%概率买到永恒小丑',diffBlue:'-1 弃牌次数',
     shopSec1:'🃏 小丑牌',shopSec2:'🪐 行星牌（升级牌型）',shopSec3:'🎫 凭证（永久升级）',
     rerollBtn:'重置商品',
     badgeJ:'小丑',badgeP:'行星',badgeV:'凭证',
@@ -713,7 +713,7 @@ const STRINGS = {
     scHeader:'💰 Sell Joker',scCancel:'Cancel',scSellBtn:'Sell',scSellFor:'Sell for:',
     pcHeader:'🪐 Planet Upgrade',pcCurLabel:'Current',pcNewLabel:'Upgraded',pcBuyBtn:'Buy',pcHandLabel:'Upgrades: ',
     winSub:'You beat all 8 Antes!',
-    diffRed:'Small Blind gives no reward',diffBlack:'30% chance of Eternal Jokers',
+    diffRed:'Small Blind gives no reward',diffGreen:'Higher score targets (Green tier)',diffBlack:'30% chance of Eternal Jokers',diffBlue:'-1 Discard per round',
     sellJokerSec:'💰 Sell Jokers',
     diffTitle:'Choose Difficulty',diffSubtitle:'Higher difficulty = higher score targets',
     helpTitle:'How to Play',
@@ -737,17 +737,25 @@ const BLIND_TARGETS_BASE = [
   [300,450,600],[800,1200,1600],[2000,3000,4000],[5000,7500,10000],
   [11000,16500,22000],[20000,30000,40000],[35000,52500,70000],[50000,75000,100000]
 ];
+// Green Stake targets (from Balatro wiki module — same table used for Black & Blue)
+const BLIND_TARGETS_GREEN = [
+  [300,450,600],[900,1350,1800],[2600,3900,5200],[8000,12000,16000],
+  [20000,30000,40000],[36000,54000,72000],[60000,90000,120000],[100000,150000,200000]
+];
 
 const DIFFICULTIES = [
-  { id:0, name:'新手',   name_en:'Beginner',    stake:'Beginner',    emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
-  { id:1, name:'标准',   name_en:'Standard',    stake:'White Stake', emoji:'⚔️', mult:1.0, money:4, hands:4, discards:3 },
-  { id:2, name:'红注',   name_en:'Red Stake',   stake:'Red Stake',   emoji:'🔴', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true },
-  { id:3, name:'黑注',   name_en:'Black Stake', stake:'Black Stake', emoji:'⬛', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true, eternalChance:0.3 },
+  { id:0, name:'新手', name_en:'Beginner', stake:'Beginner',    emoji:'😊', mult:0.6, money:6, hands:4, discards:4 },
+  { id:1, name:'标准', name_en:'Standard', stake:'White Stake', emoji:'⚔️', mult:1.0, money:4, hands:4, discards:3 },
+  { id:2, name:'进阶', name_en:'Advanced', stake:'Red Stake',   emoji:'🔴', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true },
+  { id:3, name:'困难', name_en:'Hard',     stake:'Green Stake', emoji:'🟢', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true, greenTargets:true },
+  { id:4, name:'专家', name_en:'Expert',   stake:'Black Stake', emoji:'⬛', mult:1.0, money:4, hands:4, discards:3, noSmallReward:true, greenTargets:true, eternalChance:0.3 },
+  { id:5, name:'地狱', name_en:'Hell',     stake:'Blue Stake',  emoji:'🔵', mult:1.0, money:4, hands:4, discards:2, noSmallReward:true, greenTargets:true, eternalChance:0.3 },
 ];
 
 function getBlindTarget(ante, blind) {
-  const base = BLIND_TARGETS_BASE[ante-1][blind];
   const diff = DIFFICULTIES[G.difficulty??1];
+  const table = diff.greenTargets ? BLIND_TARGETS_GREEN : BLIND_TARGETS_BASE;
+  const base = table[ante-1][blind];
   return Math.round(base * diff.mult);
 }
 const BLIND_NAMES = ['小盲注','大盲注','Boss盲注'];
@@ -2184,7 +2192,7 @@ function renderHelpContent(){
   if(en){
     html += sec('🎯 Goal','<p>Select 1–5 cards and play poker hands to score points. Beat the target before running out of hands to advance!</p>');
     html += sec('🏟️ Structure','<p><b>Ante:</b> 8 Antes total — clear all 8 to win.</p><p><b>Each Ante has 3 blinds:</b></p>'+ul('🟡 <b>Small Blind</b> — baseline target','🟠 <b>Big Blind</b> — ×1.5 target','🔴 <b>Boss Blind</b> — ×2 target + a special restriction')+'<p>After the Boss Blind, visit the <b>🛒 Shop</b>.</p>');
-    html += sec('🃏 Playing a Hand',ul('8 cards dealt per round','Tap to select (max 5), then press <b>Play</b>','Hands / Discards per round depend on difficulty (Beginner 4/4, Standard/Red/Black 4/3)','Discard = swap selected cards for new ones (no hand cost)','Run out of hands without hitting target → Game Over 💀'));
+    html += sec('🃏 Playing a Hand',ul('8 cards dealt per round','Tap to select (max 5), then press <b>Play</b>','Hands / Discards per round depend on difficulty (Beginner 4/4, Standard–Expert 4/3, Hell 4/2)','Discard = swap selected cards for new ones (no hand cost)','Run out of hands without hitting target → Game Over 💀'));
     html += sec('📊 Scoring Formula','<p style="font-size:15px;text-align:center;background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;margin:8px 0;">Score = <span style="color:#4488ff">( Hand Chips + <b>all</b> played card values )</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; × <span style="color:#ff6644">( Hand Mult + Joker bonuses )</span></p><p><b>All</b> played cards contribute Chips (including kickers). J/Q/K=10, A=11.</p>');
     html += sec('♠ Hand Types (low → high)','<table class="h-table"><tr><th>Hand</th><th>Description</th><th>Chips</th><th>Mult</th></tr><tr><td>High Card</td><td>Any 1 card</td><td>5</td><td>×1</td></tr><tr><td>Pair</td><td>2 of a rank</td><td>10</td><td>×2</td></tr><tr><td>Two Pair</td><td>Two different pairs</td><td>20</td><td>×2</td></tr><tr><td>Three of a Kind</td><td>3 of a rank</td><td>30</td><td>×3</td></tr><tr><td>Straight</td><td>5 consecutive ranks</td><td>30</td><td>×4</td></tr><tr><td>Flush</td><td>5 same suit</td><td>35</td><td>×4</td></tr><tr><td>Full House</td><td>3-of-a-kind + Pair</td><td>40</td><td>×4</td></tr><tr><td>Four of a Kind</td><td>4 of a rank</td><td>60</td><td>×7</td></tr><tr><td>Straight Flush</td><td>Straight + Flush</td><td>100</td><td>×8</td></tr></table>');
     html += sec('💰 Rewards & Interest',ul('Round reward: Small +$3, Big +$4, Boss +$5, plus $1 per remaining hand','<b>Interest:</b> earn $1 per $5 held at end of round (max $5 interest)','Tip: save money to earn interest!'));
@@ -2196,7 +2204,7 @@ function renderHelpContent(){
   } else {
     html += sec('🎯 目标','<p>每局选 1~5 张牌出牌，打出扑克牌型得分。在出牌次数用完前，累计分数超过目标 → 过关！</p>');
     html += sec('🏟️ 游戏结构','<p><b>Ante（关卡）</b>：共 8 个 Ante，通关全部 8 个即胜利。</p><p><b>每个 Ante 有 3 个盲注：</b></p>'+ul('🟡 <b>小盲注</b> — 最低目标分数','🟠 <b>大盲注</b> — 目标 ×1.5','🔴 <b>Boss 盲注</b> — 目标 ×2，还有特殊限制')+'<p>打完 Boss 盲注后进入 <b>🛒 商店</b>。</p>');
-    html += sec('🃏 每局出牌',ul('每局发 8 张牌到手牌','点击选中（最多 5 张），按 <b>出牌</b> 打出','出牌/弃牌次数视难度而定（新手 4/4，标准/红注/黑注 4/3）','弃牌 = 丢掉选中的牌补充新牌（不消耗出牌次数）','出完全部次数还没达到目标 → 游戏失败 💀'));
+    html += sec('🃏 每局出牌',ul('每局发 8 张牌到手牌','点击选中（最多 5 张），按 <b>出牌</b> 打出','出牌/弃牌次数视难度而定（新手 4/4，标准到专家 4/3，地狱 4/2）','弃牌 = 丢掉选中的牌补充新牌（不消耗出牌次数）','出完全部次数还没达到目标 → 游戏失败 💀'));
     html += sec('📊 计分公式','<p style="font-size:15px;text-align:center;background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;margin:8px 0;">得分 = <span style="color:#4488ff">（牌型基础筹码 + <b>所有</b>打出牌的点数之和）</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; × <span style="color:#ff6644">（牌型基础倍率 + 小丑加成）</span></p><p>打出的<b>所有</b>牌都贡献筹码，J/Q/K=10，A=11。</p>');
     html += sec('♠ 牌型与基础分（从低到高）','<table class="h-table"><tr><th>牌型</th><th>说明</th><th>筹码</th><th>倍率</th></tr><tr><td>高牌</td><td>任意1张</td><td>5</td><td>×1</td></tr><tr><td>一对</td><td>2张同点数</td><td>10</td><td>×2</td></tr><tr><td>两对</td><td>两个不同对子</td><td>20</td><td>×2</td></tr><tr><td>三条</td><td>3张同点数</td><td>30</td><td>×3</td></tr><tr><td>顺子</td><td>5张连续点数</td><td>30</td><td>×4</td></tr><tr><td>同花</td><td>5张同花色</td><td>35</td><td>×4</td></tr><tr><td>葫芦</td><td>三条+一对</td><td>40</td><td>×4</td></tr><tr><td>四条</td><td>4张同点数</td><td>60</td><td>×7</td></tr><tr><td>同花顺</td><td>同花色+连续</td><td>100</td><td>×8</td></tr></table>');
     html += sec('💰 过关奖励 & 利息',ul('过关奖励：小盲 +$3，大盲 +$4，Boss盲 +$5，另加剩余出牌次数 × $1','<b>利息</b>：每存 $5 额外获得 $1（最多 $5 利息）','策略：别把钱花光，存钱滚利息！'));
@@ -2269,11 +2277,10 @@ function renderDifficultyScreen(){
   if(!cards) return;
   cards.innerHTML='';
   DIFFICULTIES.forEach((d,i)=>{
-    const cl=['ds-good','','ds-bad','ds-bad'][i];
-    const hcl=i===0?'ds-good':i<=1?'':'ds-bad';
-    const dcl=i===0?'ds-good':i===1?'':i===2?'ds-bad':'ds-bad';
-    const multCls=i===0?'ds-good':i===1?'':i>=2?'ds-bad':'';
-    const moneyCls=i===0?'ds-good':i===1?'':i>=2?'ds-bad':'';
+    const hcl=i===0?'ds-good':i<=1?'':i>=4?'ds-bad':'';
+    const dcl=i===0?'ds-good':i<=1?'':i>=3?'ds-bad':'';
+    const multCls=i===0?'ds-good':i<=2?'':i>=3?'ds-bad':'';
+    const moneyCls=i===0?'ds-good':i<=1?'':`ds-bad`;
     const times=t('diffTimes');
     const el=document.createElement('div');
     el.className=`diff-card diff-${i}`;
@@ -2282,12 +2289,14 @@ function renderDifficultyScreen(){
       <div class="diff-name">${tDef(d,'name')}</div>
       <div class="diff-stake">${d.stake||['Beginner','White Stake','Red Stake','Black Stake'][i]}</div>
       <div class="diff-stats">
-        <span>${t('diffTarget')} <b class="${multCls}">×${d.mult}</b></span>
+        <span>${t('diffTarget')} <b class="${multCls}">${d.greenTargets?(CURR_LANG==='en'?'Green tier':'Green档'):'×'+d.mult}</b></span>
         <span>${t('diffMoney')} <b class="${moneyCls}">$${d.money}</b></span>
         <span>${t('diffHands')} <b class="${hcl}">${d.hands}${times}</b></span>
         <span>${t('diffDiscards')} <b class="${dcl}">${d.discards}${times}</b></span>
-        ${d.noSmallReward?`<span style="color:#ff9944;font-size:10px;margin-top:2px;">⚠ ${t('diffRed')}</span>`:''}
+        ${d.noSmallReward?`<span style="color:#ff7744;font-size:10px;margin-top:2px;">⚠ ${t('diffRed')}</span>`:''}
+        ${d.greenTargets?`<span style="color:#44cc88;font-size:10px;margin-top:2px;">📈 ${t('diffGreen')}</span>`:''}
         ${d.eternalChance?`<span style="color:#cc88ff;font-size:10px;margin-top:2px;">🔒 ${t('diffBlack')}</span>`:''}
+        ${d.discards<3&&d.greenTargets?`<span style="color:#4488ff;font-size:10px;margin-top:2px;">🗑 ${t('diffBlue')}</span>`:''}
       </div>`;
     cards.appendChild(el);
   });
