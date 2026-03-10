@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>神谕与鼻炎片 — chensquare</title>
+  <meta name="description" content="一篇关于加密货币之神与布洛芬仪式的荒诞短篇小说。">
+  <meta property="og:title" content="神谕与鼻炎片">
+  <meta property="og:description" content="神谕在于那个"凑合"里，藏着的，不肯放弃的，笃定的一口气。">
+  <style>
+    :root {
+      --bg: #0a0a14;
+      --surface: #12121f;
+      --border: #222238;
+      --accent: #7c6af7;
+      --accent2: #f76a9b;
+      --gold: #f5c842;
+      --gold-dim: rgba(245, 200, 66, 0.15);
+      --text: #ddddf5;
+      --muted: #6868a0;
+      --pill-blue: #4a9eff;
+      --pill-blue-dim: rgba(74, 158, 255, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', 'Noto Serif SC', 'Source Han Serif CN', serif;
+      min-height: 100vh;
+      line-height: 1.9;
+    }
+
+    /* ── BACK LINK ───────────────────────────────── */
+    .back-link {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+      z-index: 100;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link::before { content: "← "; }
+
+    /* ── HERO ────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(124, 106, 247, 0.15) 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 40% at 70% 60%, rgba(245, 200, 66, 0.08) 0%, transparent 60%);
+      z-index: 0;
+    }
+
+    /* Spinning coin CSS art */
+    .coin-art {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 2.5rem;
+      z-index: 1;
+    }
+
+    .coin {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        #f5c842, #f0a020, #f5c842, #ffd700, #c8a020, #f5c842
+      );
+      box-shadow:
+        0 0 40px rgba(245, 200, 66, 0.4),
+        0 0 80px rgba(245, 200, 66, 0.15),
+        inset 0 0 20px rgba(255, 255, 255, 0.1);
+      animation: spin 8s linear infinite, glow-pulse 3s ease-in-out infinite alternate;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
+    }
+
+    @keyframes glow-pulse {
+      0% { box-shadow: 0 0 30px rgba(245, 200, 66, 0.3), 0 0 60px rgba(245, 200, 66, 0.1); }
+      100% { box-shadow: 0 0 60px rgba(245, 200, 66, 0.6), 0 0 100px rgba(245, 200, 66, 0.25); }
+    }
+
+    .coin-ring {
+      position: absolute;
+      inset: -12px;
+      border-radius: 50%;
+      border: 1px solid rgba(245, 200, 66, 0.2);
+      animation: ring-rotate 12s linear infinite;
+    }
+
+    .coin-ring::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+    }
+
+    @keyframes ring-rotate {
+      to { transform: rotate(360deg); }
+    }
+
+    .hero-tag {
+      font-family: system-ui, sans-serif;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent2);
+      background: rgba(247, 106, 155, 0.1);
+      border: 1px solid rgba(247, 106, 155, 0.2);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      z-index: 1;
+    }
+
+    .hero-title {
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #fff;
+      text-shadow: 0 0 40px rgba(124, 106, 247, 0.4);
+      z-index: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      z-index: 1;
+      font-style: italic;
+      margin-bottom: 2.5rem;
+      max-width: 500px;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+      z-index: 1;
+    }
+
+    .hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      animation: fade-down 2s ease-in-out infinite;
+    }
+
+    @keyframes fade-down {
+      0%, 100% { opacity: 0.3; transform: translateX(-50%) translateY(0); }
+      50% { opacity: 0.8; transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ── STORY CONTAINER ─────────────────────────── */
+    .story {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 2rem 6rem;
+    }
+
+    /* ── CHAPTER HEADER ──────────────────────────── */
+    .chapter {
+      margin-top: 3.5rem;
+    }
+
+    .chapter-num {
+      font-family: system-ui, sans-serif;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .chapter-num::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    .chapter-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── STORY TEXT ──────────────────────────────── */
+    .story p {
+      font-size: 1.05rem;
+      line-height: 1.95;
+      color: var(--text);
+      margin-bottom: 1.4rem;
+    }
+
+    .story p + p {
+      text-indent: 2em;
+    }
+
+    .story em {
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    /* Dialogue lines */
+    .story p.dialogue {
+      text-indent: 0;
+      padding-left: 1.5rem;
+      border-left: 2px solid var(--border);
+      color: #c0c0e0;
+      margin: 1.4rem 0;
+    }
+
+    /* ── CALLOUT BOXES ───────────────────────────── */
+    .oracle-box {
+      background: var(--gold-dim);
+      border: 1px solid rgba(245, 200, 66, 0.2);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 12px 12px 0;
+      padding: 1.2rem 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .oracle-box .label {
+      font-family: system-ui, sans-serif;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+
+    .oracle-box p {
+      font-size: 0.95rem !important;
+      color: rgba(245, 200, 66, 0.9) !important;
+      text-indent: 0 !important;
+      margin-bottom: 0 !important;
+      font-style: italic;
+    }
+
+    .pill-box {
+      background: var(--pill-blue-dim);
+      border: 1px solid rgba(74, 158, 255, 0.2);
+      border-left: 3px solid var(--pill-blue);
+      border-radius: 0 12px 12px 0;
+      padding: 1.2rem 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .pill-box .label {
+      font-family: system-ui, sans-serif;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--pill-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .pill-box p {
+      font-size: 0.9rem !important;
+      color: rgba(74, 158, 255, 0.9) !important;
+      text-indent: 0 !important;
+      margin-bottom: 0.5rem !important;
+    }
+
+    .pill-box p:last-child { margin-bottom: 0 !important; }
+
+    /* ── AI GENERATED IMAGES ─────────────────────── */
+    .story-image {
+      margin: 2.5rem -1rem;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .story-image img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .story-image img.loaded { opacity: 1; }
+
+    .story-image .img-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      transition: opacity 0.6s ease;
+    }
+
+    .story-image img.loaded + .img-placeholder { opacity: 0; pointer-events: none; }
+
+    .story-image .img-caption {
+      padding: 0.75rem 1.2rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      font-style: italic;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    /* placeholder art */
+    .placeholder-art {
+      width: 100%;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── DIVIDER ─────────────────────────────────── */
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin: 3rem 0;
+      color: var(--muted);
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border));
+    }
+
+    .divider::after {
+      background: linear-gradient(to left, transparent, var(--border));
+    }
+
+    /* ── DREAM SEQUENCE ──────────────────────────── */
+    .dream-section {
+      position: relative;
+      margin: 2rem 0;
+      padding: 2rem;
+      background: linear-gradient(135deg, rgba(124, 106, 247, 0.06), rgba(247, 106, 155, 0.04));
+      border: 1px solid rgba(124, 106, 247, 0.15);
+      border-radius: 16px;
+    }
+
+    .dream-section::before {
+      content: '夢';
+      position: absolute;
+      top: -0.8rem;
+      left: 1.5rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      font-family: system-ui, sans-serif;
+      color: var(--accent);
+      background: var(--bg);
+      padding: 0 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .dream-section p {
+      font-style: italic;
+      color: #b0b0d8;
+    }
+
+    /* ── EPILOGUE ────────────────────────────────── */
+    .epilogue {
+      margin-top: 4rem;
+      padding: 2.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    .epilogue p {
+      font-size: 1.15rem !important;
+      color: #d0d0f0 !important;
+      line-height: 2 !important;
+      text-indent: 0 !important;
+    }
+
+    .epilogue .highlight {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .epilogue .end-mark {
+      margin-top: 1.5rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+    }
+
+    /* ── FOOTNOTE ────────────────────────────────── */
+    .footnote {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footnote a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footnote a:hover { text-decoration: underline; }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-family: system-ui, sans-serif;
+      font-size: 0.8rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 600px) {
+      .hero { padding: 5rem 1.5rem 3rem; }
+      .story { padding: 0 1.25rem 4rem; }
+      .story-image { margin: 2rem 0; }
+      .back-link { top: 1rem; left: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<a class="back-link" href="/">chensquare</a>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+
+  <div class="coin-art">
+    <div class="coin-ring"></div>
+    <div class="coin">₿</div>
+  </div>
+
+  <div class="hero-tag">AI × 短篇小说 · Short Fiction</div>
+  <h1 class="hero-title">神谕与鼻炎片</h1>
+  <p class="hero-subtitle">或：关于一个叫做"Crypto的神"的存在及其信徒的田野调查报告</p>
+
+  <div class="hero-meta">
+    <span>📖 约 3000 字</span>
+    <span>·</span>
+    <span>🤖 由 AI 创作</span>
+    <span>·</span>
+    <span>💊 布洛芬已备好</span>
+  </div>
+
+  <div class="scroll-hint">
+    ↓ 向下滚动
+  </div>
+</section>
+
+<!-- STORY -->
+<article class="story">
+
+  <!-- 壹 -->
+  <div class="chapter">
+    <div class="chapter-num">壹</div>
+
+    <p>事情的起源，要追溯到那个叫做"链上先知"的Discord服务器。</p>
+
+    <p>没有人知道那个账号是什么时候出现的。它的头像是一枚旋转的金色硬币，昵称就叫做"The God of Crypto"，主页简介只有一行字：<em>我见过所有的K线，包括你出生那天的。</em></p>
+
+    <p>大多数人最开始以为这是个玩梗号。</p>
+
+    <p>直到它开口说话的第三天，以太坊暴涨了40%。</p>
+
+    <div class="oracle-box">
+      <div class="label">🔮 神谕 · The Oracle</div>
+      <p>"我早说了，布洛芬备好。"</p>
+    </div>
+
+    <p>没有人在意那句附言。</p>
+  </div>
+
+  <!-- AI Generated Image: Discord Server -->
+  <div class="story-image" id="img1">
+    <img
+      src="https://image.pollinations.ai/prompt/a%20mysterious%20golden%20glowing%20coin%20floating%20in%20dark%20purple%20digital%20space%2C%20Discord%20chat%20bubbles%20faintly%20visible%2C%20cyberpunk%20atmosphere%2C%20cinematic%20lighting%2C%20ultra%20detailed?width=1200&height=560&seed=101&nologo=true&model=flux"
+      alt="链上先知的Discord服务器"
+      loading="lazy"
+      onload="this.classList.add('loaded')"
+      onerror="this.closest('.story-image').querySelector('.placeholder-art').innerHTML='<svg viewBox=\'0 0 800 400\' xmlns=\'http://www.w3.org/2000/svg\' style=\'width:100%;height:100%\'><defs><radialGradient id=\'g1\' cx=\'50%\' cy=\'40%\' r=\'50%\'><stop offset=\'0%\' stop-color=\'#7c6af730\'/><stop offset=\'100%\' stop-color=\'#0a0a1400\'/></radialGradient></defs><rect width=\'800\' height=\'400\' fill=\'#0d0d1a\'/><ellipse cx=\'400\' cy=\'160\' rx=\'200\' ry=\'120\' fill=\'url(#g1)\'/><circle cx=\'400\' cy=\'160\' r=\'70\' fill=\'none\' stroke=\'#f5c84230\' stroke-width=\'1\'/><circle cx=\'400\' cy=\'160\' r=\'55\' fill=\'#f5c84220\' stroke=\'#f5c84250\' stroke-width=\'2\'/><text x=\'400\' y=\'172\' text-anchor=\'middle\' font-size=\'40\' fill=\'#f5c842cc\'>₿</text><text x=\'400\' y=\'280\' text-anchor=\'middle\' font-size=\'13\' fill=\'#7c6af7aa\' font-family=\'monospace\'>THE GOD OF CRYPTO</text><text x=\'400\' y=\'300\' text-anchor=\'middle\' font-size=\'11\' fill=\'#ffffff30\' font-family=\'monospace\'>我见过所有的K线，包括你出生那天的。</text></svg>'; this.closest('.story-image').querySelector('.img-placeholder').style.display='none'; this.style.display='none';"
+    >
+    <div class="img-placeholder">
+      <span style="font-size: 2rem">₿</span>
+      <span>加载图片中…</span>
+    </div>
+    <div class="img-caption">链上先知的数字圣坛</div>
+  </div>
+
+  <!-- 贰 -->
+  <div class="chapter">
+    <div class="chapter-num">贰</div>
+
+    <p>我第一次听说这件事，是从我的邻居老陈那里。</p>
+
+    <p>老陈是个做了十年外贸的中年男人，平时最大的爱好是在楼道里蹲着抽烟、批评年轻人不努力。但那天他敲响我家的门，神色有些古怪，手里拿着一板布洛芬，像捧着什么圣物。</p>
+
+    <p class="dialogue">"小李，你炒币吗？"</p>
+
+    <p>我说不炒。</p>
+
+    <p class="dialogue">"那你囤布洛芬吗？"</p>
+
+    <p>我说……也不囤。</p>
+
+    <p>老陈叹了口气，像是在为我的无知感到惋惜，转身离去，留下我站在门口，看着他走回自己家，把门带上，从门缝里传出一声意味深长的叹息。</p>
+
+    <p>后来我才知道，那时候整栋楼里，至少有七户人家开始囤布洛芬。</p>
+  </div>
+
+  <!-- 叁 -->
+  <div class="chapter">
+    <div class="chapter-num">叁</div>
+
+    <p>"The God of Crypto"的神谕系统，在第三周正式成型。</p>
+
+    <p>规则如下：</p>
+
+    <div class="pill-box">
+      <div class="label">💊 神谕仪规 · Sacred Protocol</div>
+      <p>每一次完成链上交易，必须服用一颗布洛芬。神谕称之为"手续费的肉身化"——区块链向你收取了gas fee，那是数字的痛；布洛芬，则是你向自己收取的模拟痛。</p>
+      <p>两种痛相互抵消，交易才算"完整"。</p>
+    </div>
+
+    <p>有人在弹幕里问：为什么是布洛芬？</p>
+
+    <p>神谕沉默了三秒，说："因为它便宜，而且有效。这就是Crypto的精神——低手续费，高性能。"</p>
+
+    <p>全场弹幕刷起了"布洛芬永不眠"。</p>
+  </div>
+
+  <!-- AI Generated Image: Ibuprofen as Sacred Object -->
+  <div class="story-image" id="img2">
+    <img
+      src="https://image.pollinations.ai/prompt/a%20single%20ibuprofen%20pill%20glowing%20with%20divine%20blue%20light%20on%20a%20dark%20altar%2C%20sacred%20religious%20relic%2C%20macro%20photography%2C%20cinematic%2C%20reverent%20atmosphere%2C%20dramatic%20lighting?width=1200&height=560&seed=202&nologo=true&model=flux"
+      alt="布洛芬的圣物"
+      loading="lazy"
+      onload="this.classList.add('loaded')"
+      onerror="this.closest('.story-image').querySelector('.placeholder-art').innerHTML='<svg viewBox=\'0 0 800 400\' xmlns=\'http://www.w3.org/2000/svg\' style=\'width:100%;height:100%\'><defs><radialGradient id=\'g2\' cx=\'50%\' cy=\'50%\' r=\'40%\'><stop offset=\'0%\' stop-color=\'#4a9eff40\'/><stop offset=\'100%\' stop-color=\'transparent\'/></radialGradient></defs><rect width=\'800\' height=\'400\' fill=\'#0a0a14\'/><ellipse cx=\'400\' cy=\'200\' rx=\'160\' ry=\'80\' fill=\'url(#g2)\'/><ellipse cx=\'400\' cy=\'200\' rx=\'50\' ry=\'28\' fill=\'#2a6acc\' stroke=\'#4a9eff\' stroke-width=\'2\'/><text x=\'400\' y=\'207\' text-anchor=\'middle\' font-size=\'11\' fill=\'white\' font-family=\'sans-serif\' font-weight=\'bold\'>200mg</text><text x=\'400\' y=\'310\' text-anchor=\'middle\' font-size=\'12\' fill=\'#4a9effaa\' font-family=\'serif\' font-style=\'italic\'>手续费的肉身化</text></svg>'; this.closest('.story-image').querySelector('.img-placeholder').style.display='none'; this.style.display='none';"
+    >
+    <div class="img-placeholder">
+      <span style="font-size: 2rem">💊</span>
+      <span>加载图片中…</span>
+    </div>
+    <div class="img-caption">手续费的肉身化</div>
+  </div>
+
+  <!-- 肆 -->
+  <div class="chapter">
+    <div class="chapter-num">肆</div>
+
+    <p>问题在第六周出现。</p>
+
+    <p>那一周，布洛芬断货了。</p>
+
+    <p>起初只是零散的药店开始缺货，然后连锁药房，然后是电商平台。没有任何官方解释，供应链就像被一只看不见的手悄悄掐断了。</p>
+
+    <p>后来有记者去调查，发现全国至少有十二个省份出现了程度不一的布洛芬抢购潮，而这些地区有一个奇怪的共同点：Discord渗透率异常高，且大量用户集中于某个神秘服务器。</p>
+
+    <p>神谕本人对此保持沉默，只发了一条消息：</p>
+
+    <div class="oracle-box">
+      <div class="label">🔮 神谕 · The Oracle</div>
+      <p>稀缺，才是真正的共识。</p>
+    </div>
+
+    <p>币价又涨了。</p>
+  </div>
+
+  <div class="divider">·&nbsp;&nbsp;·&nbsp;&nbsp;·</div>
+
+  <!-- 伍 — 梦境 -->
+  <div class="chapter">
+    <div class="chapter-num">伍</div>
+
+    <p>就是在这个节骨眼上，我老婆做了那个梦。</p>
+
+    <div class="dream-section">
+      <p>她梦见我，一脸疲惫，穿着睡衣，在黑暗的城市里穿行。我走过药店、便利店、医院门口，每一处都是空的货架，每一个售货员都用同情的眼神看着我摇头。</p>
+
+      <p style="margin-top: 1rem">"你为什么要找布洛芬？"她在梦里问我。</p>
+
+      <p>"Crypto的神说过了，每次交易之后都要吃一颗。"</p>
+
+      <p>"可是找不到怎么办？"</p>
+
+      <p>我停顿了一下，从口袋里掏出一片蓝色的小药片，在昏黄的路灯下翻来覆去地看。</p>
+
+      <p>"找到一颗鼻炎片，先凑合吧。"</p>
+    </div>
+
+    <p>她从梦里笑醒了。</p>
+
+    <p>然后戳了戳我的胳膊，把这个梦讲给了我听。</p>
+
+    <p>然后我们沉默了大约三十秒。</p>
+
+    <p>然后我翻身起床，去床头柜的抽屉里摸了摸，确认我确实存着半板布洛芬。</p>
+  </div>
+
+  <!-- AI Generated Image: Dream Sequence -->
+  <div class="story-image" id="img3">
+    <img
+      src="https://image.pollinations.ai/prompt/a%20tired%20man%20in%20pajamas%20walking%20through%20dark%20empty%20city%20streets%20at%20night%2C%20neon%20lights%20reflected%20on%20wet%20pavement%2C%20empty%20pharmacy%20shelves%20visible%20through%20glass%2C%20dreamlike%20surreal%20atmosphere%2C%20cinematic%20noir%2C%20lonely%20urban%20night?width=1200&height=560&seed=303&nologo=true&model=flux"
+      alt="梦里的黑暗城市"
+      loading="lazy"
+      onload="this.classList.add('loaded')"
+      onerror="this.closest('.story-image').querySelector('.placeholder-art').innerHTML='<svg viewBox=\'0 0 800 400\' xmlns=\'http://www.w3.org/2000/svg\' style=\'width:100%;height:100%\'><defs><linearGradient id=\'g3\' x1=\'0\' y1=\'0\' x2=\'0\' y2=\'1\'><stop offset=\'0%\' stop-color=\'#0a0a20\'/><stop offset=\'100%\' stop-color=\'#141428\'/></linearGradient></defs><rect width=\'800\' height=\'400\' fill=\'url(#g3)\'/><rect x=\'50\' y=\'100\' width=\'80\' height=\'200\' fill=\'#181830\' stroke=\'#2a2a4a\' stroke-width=\'1\'/><rect x=\'160\' y=\'140\' width=\'60\' height=\'160\' fill=\'#181830\' stroke=\'#2a2a4a\' stroke-width=\'1\'/><rect x=\'600\' y=\'80\' width=\'100\' height=\'220\' fill=\'#181830\' stroke=\'#2a2a4a\' stroke-width=\'1\'/><rect x=\'720\' y=\'120\' width=\'60\' height=\'180\' fill=\'#181830\' stroke=\'#2a2a4a\' stroke-width=\'1\'/><rect x=\'0\' y=\'300\' width=\'800\' height=\'100\' fill=\'#0d0d20\'/><text x=\'400\' y=\'270\' text-anchor=\'middle\' font-size=\'20\' fill=\'#6868a0\'>🚶</text><text x=\'400\' y=\'320\' text-anchor=\'middle\' font-size=\'11\' fill=\'#6868a080\' font-family=\'serif\' font-style=\'italic\'>先凑合吧</text></svg>'; this.closest('.story-image').querySelector('.img-placeholder').style.display='none'; this.style.display='none';"
+    >
+    <div class="img-placeholder">
+      <span style="font-size: 2rem">🌃</span>
+      <span>加载图片中…</span>
+    </div>
+    <div class="img-caption">那个梦里的夜城</div>
+  </div>
+
+  <!-- 陆 -->
+  <div class="chapter">
+    <div class="chapter-num">陆</div>
+
+    <p>我开始认真调查"The God of Crypto"，是从那天早上开始的。</p>
+
+    <p>我混进了那个Discord服务器，以一个普通信徒的身份，开始观察。</p>
+
+    <p>服务器里有将近八万人。他们来自各行各业：有在读的大学生，有做期货的中年人，有退休的大爷（这让我很震惊，后来我才知道大爷的孙子帮他注册了账号，大爷负责每天按时汇报"神谕有没有说话"）。</p>
+
+    <p>他们每天的仪式非常固定：查看神谕是否有新的"天启"；做完交易，在频道里报备"已完成布洛芬仪式"，附上一张药片的照片；晚上复盘，讨论今天的K线走势，并与神谕的话语进行"对应解读"。</p>
+
+    <p>最令我惊讶的是，他们的讨论质量……并不差。很多人对区块链技术的理解相当扎实，对市场的分析也有自己的逻辑。布洛芬，更像是一个黏合剂——一个奇怪的、荒诞的、让所有人凝聚在同一个仪式里的共同语言。</p>
+
+    <p>有一天，一个叫"链上苦行僧"的用户私信了我。</p>
+
+    <p class="dialogue">"你觉得他们傻吗？"</p>
+
+    <p>我说……不完全是。</p>
+
+    <p class="dialogue">"对。我们只是需要一个神。Crypto太冷了，全是数字，全是代码，全是看不见摸不着的东西。布洛芬是真实的，疼痛是真实的，吞下去的那一刻，你感觉自己真的参与了什么。"</p>
+
+    <p>我盯着屏幕看了很久。</p>
+  </div>
+
+  <!-- 柒 -->
+  <div class="chapter">
+    <div class="chapter-num">柒</div>
+
+    <p>"The God of Crypto"的真实身份，最终被一个技术论坛的匿名用户扒了出来。</p>
+
+    <p>是个二十四岁的程序员，湖南人，独居，养了一只猫叫做"中本聪"。他从没在任何采访里露过面，账号在被扒出来的第二天就注销了，留下的最后一条消息是：</p>
+
+    <div class="oracle-box">
+      <div class="label">🔮 最后的神谕 · Final Oracle</div>
+      <p>神不需要存在，神迹需要。</p>
+      <p style="margin-top: 0.5rem">布洛芬的货我已经让朋友提前备好了，你们冲吧。</p>
+    </div>
+  </div>
+
+  <!-- 捌 -->
+  <div class="chapter">
+    <div class="chapter-num">捌</div>
+
+    <p>故事的结尾，没有大反转，没有崩盘，没有审判。</p>
+
+    <p>布洛芬的货最终补上来了，价格涨了大约15%，然后慢慢回落。</p>
+
+    <p>那个Discord服务器在神谕消失后，沉寂了大约两周，然后出现了新的账号，头像是一颗蓝色的鼻炎片，昵称叫做"The God of Crypto II"，主页简介写着：</p>
+
+    <div class="pill-box">
+      <div class="label">💊 薪火相传 · The Second Coming</div>
+      <p>先辈已归，薪火相传。</p>
+      <p>布洛芬缺货期间，鼻炎片亦可通灵。</p>
+      <p>手续费照旧，凑合，也是一种精神。</p>
+    </div>
+
+    <p>八万人里，有七万三千人留了下来。</p>
+  </div>
+
+  <div class="divider">·&nbsp;&nbsp;·&nbsp;&nbsp;·</div>
+
+  <!-- EPILOGUE -->
+  <div class="epilogue">
+    <p>
+      我只是想说，我老婆那个梦里最打动我的，<br>
+      不是那个荒诞的神谕，<br>
+      也不是找不到布洛芬的窘境，<br>
+      而是那句话本身——
+    </p>
+    <p style="margin-top: 1.5rem; font-size: 1.4rem !important; font-weight: 700;">
+      <span class="highlight">"先凑合吧。"</span>
+    </p>
+    <p style="margin-top: 1.5rem">
+      神说要吃布洛芬，我们就去找布洛芬；<br>
+      找不到布洛芬，我们就找鼻炎片；<br>
+      找不到任何药，我们大概会去找一颗糖，<br>
+      然后告诉自己，神的意思，应该是这个意思。
+    </p>
+    <p style="margin-top: 1.5rem; color: var(--muted) !important; font-size: 0.95rem !important">
+      信仰从来不在于那颗药片是什么。<br>
+      信仰在于那个"凑合"里，藏着的，不肯放弃的，笃定的一口气。
+    </p>
+    <div class="end-mark">—— 全文完 ——</div>
+  </div>
+
+  <!-- FOOTNOTE -->
+  <div class="footnote">
+    <p>
+      📖 这篇小说的灵感来自一个真实的梦——关于一个 crypto 信徒、一条神谕、和一颗找不到的布洛芬。
+      由 AI 根据对话创作，收录于 <a href="/">chensquare</a>。
+    </p>
+    <p style="margin-top: 0.5rem">配图由 <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations.ai</a> AI 生成。</p>
+  </div>
+
+</article>
+
+<footer>
+  <p>Made with AI · <a href="/">chensquare</a> · <a href="https://github.com/chcharcharlie" target="_blank" rel="noopener">@chcharcharlie</a></p>
+</footer>
+
+<script>
+  // Fade in images as they load
+  document.querySelectorAll('.story-image img').forEach(img => {
+    if (img.complete && img.naturalWidth > 0) {
+      img.classList.add('loaded');
+    }
+  });
+</script>
+
+</body>
+</html>
