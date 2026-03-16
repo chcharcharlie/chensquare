@@ -272,6 +272,49 @@
       letter-spacing: 0.1em;
     }
 
+    /* ── STORY IMAGE ── */
+    .story-img {
+      margin: 2.5rem 0;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .story-img img {
+      width: 100%;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      border-radius: 4px;
+    }
+    .story-img img.loaded { opacity: 1; }
+    .story-img figcaption {
+      font-family: system-ui, sans-serif;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-align: center;
+      padding: 0.6rem 0 0;
+    }
+
+    /* Hero image below SVG */
+    .hero-image {
+      position: relative;
+      z-index: 1;
+      width: min(700px, 90vw);
+      margin: 2rem auto 0;
+      border-radius: 6px;
+      overflow: hidden;
+      opacity: 0.85;
+    }
+    .hero-image img {
+      width: 100%;
+      display: block;
+      border-radius: 6px;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    .hero-image img.loaded { opacity: 1; }
+
     /* ── FOOTER ── */
     footer {
       text-align: center;
@@ -334,6 +377,12 @@
     <p class="hero-sub">好吃是真实的。上瘾也是真实的。</p>
     <p class="hero-meta">2026 · AI 创作</p>
   </div>
+
+  <!-- Hero image: skull with gold filaments -->
+  <div class="hero-image">
+    <img src="./img/skull.png" alt="颅骨里的金色丝网" onload="this.classList.add('loaded')">
+  </div>
+
 </section>
 
 <!-- ═══ STORY ════════════════════════════════════════════════════════ -->
@@ -356,6 +405,12 @@
 
     <p>后来离场的时候，你在楼下等车，夜风凉了一些，城市还是亮着的，无数窗口，无数灯光。你站在那里，想着你知道的那件事，想着你没有说的话，想着你这辈子没有说过的那些话。你没有想清楚什么，车来了，你上车了。</p>
   </section>
+
+  <!-- Image after ch1: rooftop party -->
+  <figure class="story-img">
+    <img src="./img/rooftop.png" alt="庆功宴的夜晚" onload="this.classList.add('loaded')">
+    <figcaption>你在稍远的地方，看着这一幕。</figcaption>
+  </figure>
 
   <!-- 第二章 -->
   <section class="chapter">
@@ -512,6 +567,12 @@
 
     <p>这两件事同时是真的。</p>
   </section>
+
+  <!-- Image before ch8: late night phone -->
+  <figure class="story-img">
+    <img src="./img/phone-night.png" alt="深夜独坐" onload="this.classList.add('loaded')">
+    <figcaption>那天夜里你睡不着，翻手机，翻到了一些东西。</figcaption>
+  </figure>
 
   <!-- 第八章 -->
   <section class="chapter">
