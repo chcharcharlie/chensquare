@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金蛀 — chensquare</title>
+  <meta name="description" content="一篇关于金钱、欲望、与你颅骨里那几根细线的短篇小说。">
+  <meta property="og:title" content="金蛀">
+  <meta property="og:description" content="你知道他做过什么。那件事行业里都知道，但没有人讲。">
+  <style>
+    :root {
+      --bg: #06060a;
+      --surface: #0d0d12;
+      --border: #1a1a24;
+      --gold: #c8a63a;
+      --gold-bright: #e8c45a;
+      --gold-dim: rgba(200, 166, 58, 0.10);
+      --gold-glow: rgba(200, 166, 58, 0.25);
+      --text: #e2d9cc;
+      --muted: #635a4f;
+      --muted2: #8a7f72;
+      --clinical: #c8cfd8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', 'Noto Serif SC', 'Source Han Serif CN', serif;
+      min-height: 100vh;
+      line-height: 2;
+    }
+
+    /* ── BACK ── */
+    .back-link {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color 0.25s;
+      z-index: 100;
+    }
+    .back-link:hover { color: var(--gold); }
+    .back-link::before { content: "← "; }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 7rem 2rem 5rem;
+      overflow: hidden;
+    }
+
+    /* Filament SVG container */
+    .filament-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .filament-svg {
+      width: min(520px, 90vw);
+      height: min(520px, 90vw);
+    }
+
+    /* Filament draw-on animation */
+    @keyframes drawLine {
+      from { stroke-dashoffset: 1; }
+      to   { stroke-dashoffset: 0; }
+    }
+    @keyframes fadeGlow {
+      0%, 100% { opacity: 0.4; }
+      50%       { opacity: 0.9; }
+    }
+
+    .fil {
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 1;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      pathLength: 1;
+      animation: drawLine 2.8s ease-out forwards, fadeGlow 4s ease-in-out infinite;
+    }
+    .fil:nth-child(1)  { animation-delay: 0.2s, 3.2s; }
+    .fil:nth-child(2)  { animation-delay: 0.6s, 3.6s; }
+    .fil:nth-child(3)  { animation-delay: 1.0s, 4.0s; }
+    .fil:nth-child(4)  { animation-delay: 1.4s, 4.4s; }
+    .fil:nth-child(5)  { animation-delay: 1.8s, 4.8s; }
+    .fil:nth-child(6)  { animation-delay: 2.2s, 5.2s; }
+    .fil:nth-child(7)  { animation-delay: 2.6s, 5.6s; stroke-width: 0.6; }
+    .fil:nth-child(8)  { animation-delay: 2.9s, 5.9s; stroke-width: 0.6; }
+
+    .fil-dot {
+      fill: var(--gold-bright);
+      opacity: 0;
+      animation: fadeGlow 4s ease-in-out 3s infinite;
+      r: 2.5;
+    }
+
+    /* Skull outline — very dim */
+    .skull-outline {
+      fill: none;
+      stroke: #2a2520;
+      stroke-width: 1.2;
+    }
+
+    /* radial gradient overlay */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 45%,
+        rgba(200, 166, 58, 0.04) 0%, transparent 65%);
+      z-index: 0;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .hero-tag {
+      font-family: system-ui, sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    .hero-title {
+      font-size: clamp(3.5rem, 10vw, 6rem);
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--muted2);
+      font-style: italic;
+      letter-spacing: 0.04em;
+      max-width: 38ch;
+      line-height: 1.7;
+    }
+
+    .hero-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.4;
+      margin: 0.5rem 0;
+    }
+
+    .hero-meta {
+      font-family: system-ui, sans-serif;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── STORY BODY ── */
+    .story {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 3rem 2rem 8rem;
+    }
+
+    /* Chapter */
+    .chapter {
+      margin-bottom: 5rem;
+    }
+
+    .chapter-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-num {
+      font-family: system-ui, sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      opacity: 0.6;
+      flex-shrink: 0;
+      padding-top: 0.1em;
+    }
+
+    .chapter-title {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--muted2);
+      letter-spacing: 0.06em;
+    }
+
+    .chapter p {
+      margin-bottom: 1.4em;
+      font-size: 1.02rem;
+      color: var(--text);
+    }
+
+    .chapter p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Clinical block — for the insurance meeting language */
+    .clinical-block {
+      margin: 1.8em 0;
+      padding: 1.2em 1.5em;
+      border-left: 2px solid rgba(200, 166, 58, 0.25);
+      background: rgba(200, 166, 58, 0.03);
+    }
+    .clinical-block p {
+      font-size: 0.94rem !important;
+      color: var(--clinical) !important;
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      line-height: 1.8;
+      margin-bottom: 0.7em !important;
+    }
+    .clinical-block p:last-child { margin-bottom: 0 !important; }
+
+    /* Final line — last line of last chapter */
+    .final-line {
+      margin-top: 2.5rem;
+      color: var(--muted2) !important;
+      letter-spacing: 0.04em;
+    }
+
+    /* Colophon */
+    .colophon {
+      text-align: center;
+      padding: 3rem 0 0;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+    .colophon-mark {
+      font-size: 1.5rem;
+      color: var(--gold);
+      opacity: 0.35;
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+    .colophon p {
+      font-family: system-ui, sans-serif;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-family: system-ui, sans-serif;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+    footer a { color: var(--gold); opacity: 0.6; text-decoration: none; }
+    footer a:hover { opacity: 1; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .story { padding: 2rem 1.4rem 6rem; }
+      .chapter p { font-size: 0.97rem; }
+      .back-link { top: 1rem; left: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<a class="back-link" href="/">chensquare</a>
+
+<!-- ═══ HERO ═══════════════════════════════════════════════════════ -->
+<section class="hero">
+
+  <!-- Filament network SVG -->
+  <div class="filament-wrap" aria-hidden="true">
+    <svg class="filament-svg" viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg">
+      <!-- Faint skull oval -->
+      <ellipse class="skull-outline" cx="260" cy="230" rx="130" ry="148"/>
+      <ellipse class="skull-outline" cx="260" cy="390" rx="52" ry="28"/>
+
+      <!-- Gold filaments — radiating from different centers near the temples -->
+      <path class="fil" d="M 240 195 C 220 170 190 145 150 120"/>
+      <path class="fil" d="M 280 195 C 300 165 330 140 370 115"/>
+      <path class="fil" d="M 248 210 C 218 215 185 230 150 220"/>
+      <path class="fil" d="M 272 210 C 305 215 338 232 370 225"/>
+      <path class="fil" d="M 255 230 C 240 265 222 295 195 320"/>
+      <path class="fil" d="M 265 230 C 280 268 298 298 325 322"/>
+      <!-- Finer tendrils -->
+      <path class="fil" d="M 245 202 C 228 185 210 172 188 160"/>
+      <path class="fil" d="M 275 202 C 292 186 310 175 332 164"/>
+
+      <!-- Nodes -->
+      <circle class="fil-dot" cx="150" cy="120"/>
+      <circle class="fil-dot" cx="370" cy="115" style="animation-delay:3.3s"/>
+      <circle class="fil-dot" cx="150" cy="220" style="animation-delay:3.7s"/>
+      <circle class="fil-dot" cx="370" cy="225" style="animation-delay:4.1s"/>
+      <circle class="fil-dot" cx="195" cy="320" style="animation-delay:4.5s"/>
+      <circle class="fil-dot" cx="325" cy="322" style="animation-delay:4.8s"/>
+    </svg>
+  </div>
+
+  <div class="hero-content">
+    <span class="hero-tag">短篇小说 · Fiction</span>
+    <h1 class="hero-title">金蛀</h1>
+    <div class="hero-divider"></div>
+    <p class="hero-sub">你知道他做过什么。那件事行业里都知道，但没有人讲。</p>
+    <p class="hero-meta">2026 · Chen Chen</p>
+  </div>
+</section>
+
+<!-- ═══ STORY ════════════════════════════════════════════════════════ -->
+<article class="story">
+
+  <!-- 第一章 -->
+  <section class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">一</span>
+      <span class="chapter-title">庆功</span>
+    </div>
+
+    <p>那杯威士忌的味道你现在已经记不清了，只记得那天晚上握着杯子的感觉——玻璃冰凉，城市的灯光从楼下漫上来，五月的风带着珠江的湿气，把每个人的发丝吹得轻轻动。</p>
+
+    <p>那是个庆功宴。公司的旗舰项目刚完成B轮，估值四十亿，这当然值得庆祝。那天的主角站在人堆中间，每个人都朝他靠近，他每次都认真接住，用一种让你觉得他真的在听的方式，把你刚才说的话里某一个细节拎出来复述给你听。你见过他太多次了，你知道那套东西是真实的——他确实在听，他会记住，会在某个合适的时机用上。你只是一直没想通，那算不算一种真诚。</p>
+
+    <p>你知道他做过什么。那件事行业里都知道，但没有人讲，就像很多事，大家都知道，但不讲。</p>
+
+    <p>你在稍远的地方喝着那杯威士忌，看着这一幕，看了一会儿，然后把目光移到别处。</p>
+
+    <p>后来离场的时候，你在楼下等车，夜风凉了一些，城市还是亮着的，无数窗口，无数灯光。你站在那里，想着你知道的那件事，想着你没有说的话，想着你这辈子没有说过的那些话。你没有想清楚什么，车来了，你上车了。</p>
+  </section>
+
+  <!-- 第二章 -->
+  <section class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">二</span>
+      <span class="chapter-title">烧</span>
+    </div>
+
+    <p>三天后你发烧了。大概是那天晚上吹了风，也可能不是。</p>
+
+    <p>你买了退烧药喝了，躺着等它起效。窗帘没拉严，有一条光漏进来，随着窗外的风轻微地动，打在对面墙上，移来移去。你迷迷糊糊地睡过去，做了个梦。</p>
+
+    <p>梦里你不在那个楼顶，你在一间办公室，是很久以前你待过的一家公司，桌上有一份文件，你记得那份文件，你记得它的措辞，那些词用得很干净，很精确，都是可以承受审查的语言。你在那份文件上签了字。那是你第一次签这类东西，那以后还有别的，但你记得那是第一次，因为那天下班之后你坐在车里发了很久的呆，你坐在那里想了什么你已经记不清了，只记得发动机的声音，和窗外的停车场。</p>
+
+    <p>你在梦里想把那个字划掉，但手不动。</p>
+
+    <p>醒来的时候天亮了，身上是一层汗，发烧退了但头还是昏沉的。你走进洗手间，低头喝了口水，抬起头，看见镜子里自己的脸。</p>
+
+    <p>你愣住了。</p>
+
+    <p>那只是一瞬间，然后消失了。但那一瞬间，你以为自己看见了颅骨里面的东西——不是骨头，不是组织，是金色的，细细的，像丝，像菌丝，像蛀牙在X光片上的样子，深黑的空洞配着过白的骨质，只不过这是金的，在你太阳穴后面，有几根细线，安安静静地待在那里。</p>
+
+    <p>你把水龙头关了。你告诉自己这是发烧烧的，是幻觉，是大脑缺水，是任何其他的事情。然后热了稀饭，发邮件请了假，回去睡了。</p>
+
+    <p>下午出去买东西，在便利店收银台前，看见一个背对你的女人在刷卡结账。她把头发扎在脑后，那个角度，那个光线，她的发际线后面，有什么东西在透光。你眨了一下眼。她拿了东西走了。你在外面站了一会儿，看着路上走过去的人，一个一个的，走过去。</p>
+  </section>
+
+  <!-- 第三章 -->
+  <section class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">三</span>
+      <span class="chapter-title">金络</span>
+    </div>
+
+    <p>你没有告诉任何人。</p>
+
+    <p>回到公司之后，你开始看人。</p>
+
+    <p>前台那个刚来不久的年轻人——几乎没有，只有极细的一两根金线，零散的，不构成结构，她正在跟人打电话，笑得很认真，那种笑是真实的。你的总监——很深了，盘根错节，像一棵倒置的树扎进了脑子里，但还留着空隙，还有暗色的区域，你想，他这个人平时其实不坏，你跟他共事了几年，他对下属说得上宽厚，有时候真的会替人着想，这一点和你看见的东西并不矛盾，那不是恶，只是一种很深的朝向，深到也许他自己也感觉不到了。</p>
+
+    <p>你开始学会控制它：不主动去看，就看不见；稍微往那个方向想一下，就浮现出来。</p>
+
+    <p>有一天早上，你在洗手间里，往镜子里看了一眼，数了数。五根，六根，有一根是新的，还是你数错了，你说不准。</p>
+
+    <p>你知道那些线是怎么来的，至少知道一部分。几年前有一个项目，不是你一手设计的，你只是在某个节点接进去。接进去的时候就知道里面有一块地方是这样的——那个设计依赖某类用户不会仔细看，不会认真算，会高估自己的判断力。你看了一眼，想，这不是我设计的，这是已有的，行业里普遍是这样，何况数字就是这样才能成立，你又想了一会儿，想不出什么强有力的理由说不，就没说。</p>
+
+    <p>后来项目做得不错，这是你没想到有那么好的。那段时间有很多饭局，有几个场合你感到自己进了一个原来你隔着门的地方，坐在那里，觉得自己终于站到了某个地方，是你做了这件事之后得到的东西。</p>
+
+    <p>那个项目你就那样放下了。没有再想那块设计，它在背景里，背景里东西太多了。</p>
+
+    <p>有一次是很久之后了，你在网上刷到一条新闻，是关于一个人的，他在某个投资产品上亏了很多钱，撑不住了。你看了几秒，往下滑，滑了两三条，又往回翻，找到那条把它看了第二遍。你不知道那个人用的是不是跟你当年那个项目相关的东西，大概率不是，产品很多，那类设计到处都有，你那个只是其中一个。</p>
+
+    <p>但你在那条新闻前待了一会儿。然后把手机翻到别的地方去了。</p>
+
+    <p>镜子里的那几根细线，也许就是那样来的。也许是别的事。你说不准。</p>
+  </section>
+
+  <!-- 第四章 -->
+  <section class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">四</span>
+      <span class="chapter-title">甜</span>
+    </div>
+
+    <p>那个周末你带父母去吃饭，一家你之前带他们去过一次的餐厅，不是最贵的，但比他们习惯的地方好一点，灯光暖，座位宽，菜单是那种字不多但每样都好。</p>
+
+    <p>你妈妈在那里会变得有点不太一样，更放松，坐得也更直，点菜的时候会稍微多问一句"这个好吃吗"，平时她不问的。你爸点了一瓶葡萄酒，量不多，但他喝得很认真，喝了一口之后说了声"不错"，然后低头看菜单，脸上有一种你很熟悉的、他不太会主动表达但你能认出来的满足。</p>
+
+    <p>饭吃到一半，你往他们身上看了一眼，然后迅速把目光移开了。你没有仔细数，只是扫了一下，然后专心去吃盘子里的东西。</p>
+
+    <p>但那以后的一会儿——趁他们聊天，你走到洗手间——你在镜子里看了自己一眼，然后开始想：这算什么，让父母吃一顿好饭，这件事里面有金络吗，如果有它在哪里，在你想给他们好的那里，还是在你需要这顿饭给你带来什么感受的那里，还是两者都有，还是这两件事根本是同一件事，你想弄清楚它们，但你越想越分不清，就像你不能把一块巧克力里的可可和糖分开来吃，它是一个东西。</p>
+
+    <p>你妈妈有一次吃到一块好的黑巧克力，那是你从出差的地方带回来的，她咬了一口，停了一下，然后说：这东西真的会让人上瘾，因为真的好吃。她说这话的时候语气是高兴的，不是警觉的，她只是在描述一个真实发生在她嘴里的事情。</p>
+
+    <p>那块巧克力确实好吃。好吃是真实的。上瘾也是真实的。这两件事都是真实的，它们不是对立的，它们是同一个事实的两面，是一块东西。</p>
+
+    <p>然后你想到，那么你带父母来这里，那顿饭，他们脸上的那种满足，你自己的那种——那也是好吃。那也是真实的好。那种好是不是就是糖的感觉，那种你一旦有了就会需要更多的感觉，那种你如果一直跟随它走最终会走到哪里你不知道的感觉——</p>
+
+    <p>然后更烦的是：这个想法本身是不是对的？这是不是一种你自己都不完全认可的标准，你是不是在用一个你没办法定义清楚的东西折磨自己？想要好吃的东西，想要爸妈高兴，想要自己和家人有更好的生活，这哪里有什么问题，这难道不是人之常情，这难道是你应该站在洗手间里审判的事情——</p>
+
+    <p>你冲了水，回到桌上，继续吃饭。你爸问你工作最近怎么样，你说还好，然后给他倒了点酒。</p>
+  </section>
+
+  <!-- 第五章 -->
+  <section class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">五</span>
+      <span class="chapter-title">那场会议</span>
+    </div>
+
+    <p>那段视频是被人转到一个内部群里的，流出来的，不完整，几分钟。</p>
+
+    <p>几个人在一间会议室里，桌上有PPT，屏幕上是折线图和百分比。那家公司是做健康保险的，那场会议讨论的是他们的"医疗审核流程优化"——你一看到这行字，已经知道这是什么。</p>
+
+    <div class="clinical-block">
+      <p>没有人说"拒绝"，说的是"审核通过率的合理化管控"。</p>
+      <p>没有人说"少赔付"，说的是"资源的可持续分配"。</p>
+      <p>有人提出某一类手术的通过率是不是还有压缩空间，另一个人说需要再看看数据，但从趋势来看应该可行。</p>
+    </div>
+
+    <p>整个过程没有人笑，没有人不耐烦，大家都像在讨论一件需要认真负责地处理的事情，语气里有一种可以被记入会议纪要的严肃。</p>
+
+    <p>你把屏幕上那几张脸在脑子里过了一遍。不是络了，是铸。已经找不到缝隙，金填满了每一个角落，密不透风，表面光滑，光华灿烂。那些语言从那些铸件里流出来，在那间会议室里回响，被记录在某个文件夹里。</p>
+
+    <p>你关掉屏幕，想到你自己那次点头，想到那顿饭，想到那瓶酒，想到停车场里发动机的声音。</p>
+  </section>
+
+  <!-- 第六章 -->
+  <section class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">六</span>
+      <span class="chapter-title">邀约</span>
+    </div>
+
+    <p>周五下午，你的上级把你叫进去。</p>
+
+    <p>房间里光线很好，他递给你一杯水，说有件事想跟你聊聊，一个新项目，他觉得你是合适的人选，他一直在看你，你成长了很多。</p>
+
+    <p>那个项目是一个面向普通用户的理财APP。产品逻辑本身没有问题，但你在材料里翻到了用户运营那一块，看了一会儿，把它看完了。</p>
+
+    <p>APP会在主界面给用户展示"历史收益情景"——如果三个月前你投入了X，今天你会有多少。每一个情景都是精心挑选的时间段，都是市场表现最好的那几个窗口，数字看起来让人动心。APP会在用户持仓下跌的时候推送消息，说这是"加仓好时机"，会在用户持仓上涨的时候鼓励他们截图分享，给社群带来新人。每天有签到，连续签到有奖励，七天不登录会收到一条"你的资产在等你"。</p>
+
+    <p>你把那几页往回翻了一遍，确认了自己没有看错。</p>
+
+    <p>这次你没有往上级脑子里看。你知道自己会看见什么了。</p>
+
+    <p>他说他下周需要你的初步想法，这个项目对你来说是一个很重要的台阶。他说这话的时候语气是真诚的，你相信他是真诚的，他没有提要你妥协什么，他可能没有意识到那几页材料意味着什么，或者他意识到了但那件事对他来说已经不够大了，不值得专门提起，他在那个房间里太多年了，那些词对他来说就是词。</p>
+
+    <p>你说你想先把材料看一遍，下周给他答复。他点头，说好，脸上是满意的表情。</p>
+
+    <p>你走出他的办公室，在走廊里站了一会儿，往玻璃幕墙的反光里看了一眼。</p>
+
+    <p>不是五根了，是七根，或者八根，你数不清了。</p>
+  </section>
+
+  <!-- 第七章 -->
+  <section class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">七</span>
+      <span class="chapter-title">那个人</span>
+    </div>
+
+    <p>那天夜里你睡不着，翻手机，翻到了一些东西，开始看，就那么一直看下去了。</p>
+
+    <p>那是关于一个人的事。他的出身是那种可以把路走到任何地方的出身，常青藤，在那个体系里一直往上走是最自然的事，金丝长下去只是时间的事。他没有走。他做过一份工作，薪资极高，远程，时间灵活，大多数人说起来会羡慕的那种——他做了两年，然后辞掉了。他在告诉朋友的短信里说：我每天做的事是优化算法，让平台从用户身上多赚几块钱。他说这份工作让他恶心。他说他做的这些没有任何意义。</p>
+
+    <p>然后他做了一件事。你知道他做了什么。</p>
+
+    <p>你在屏幕前坐了很久。</p>
+
+    <p>你不会成为他。你知道自己的那条线在哪里，你在那晚上看得很清楚。他感到恶心，然后离开了。你想了一下自己的那次点头，想了一下那顿饭，想了一下坐在那里终于觉得站到了某个地方的感觉。</p>
+
+    <p>他是清醒的。他知道那套模板是什么，知道自己站在哪个位置，然后一次次做了和模板要求相反的事，直到最后那一次。这意味着放弃很多，你知道这意味着放弃很多。你做不到这个。而且你不确定你是不是真的想做到。</p>
+
+    <p>这两件事同时是真的。</p>
+  </section>
+
+  <!-- 第八章 -->
+  <section class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">八</span>
+      <span class="chapter-title">选择</span>
+    </div>
+
+    <p>材料你已经看完了。</p>
+
+    <p>周五下午三点，你还有两个小时要给答复。你坐在位置上，屏幕是亮的，咖啡凉了，窗外是平时你不怎么看的那片城市。你把那几页又翻了一遍，那些选好的历史窗口，那些"加仓好时机"，那些连续签到，那条"你的资产在等你"。</p>
+
+    <p>说是的话，你知道那意味着什么。不是那几页设计，是那顿饭，那瓶酒，那个你进了的原来你站在外面的门，那种被信任了被看见了的感觉，那种好。你妈妈说的那句话：好吃是真实的，上瘾也是真实的，同一件事。这个项目也是。</p>
+
+    <p>说不的话，你也知道那意味着什么。不是一个干净的姿势，是在走廊里站着不知道往哪里走。是那个项目可能还是会做，换一个人，做得不错，然后有顿饭，那种感觉就那么给了别人，你不在里面。是你不知道你这个不有没有改变任何东西，是那几页材料还在那里，是"你的资产在等你"还会在七天后发出去。</p>
+
+    <p>你想到几年前那次点头，想到停车场里的发动机声，想到你后来刷到的那条新闻，在那里待了一会儿，然后划走了。那次的点头当时也不觉得是个大的事情，数字就是这样才能成立，你想清楚了，就过去了。</p>
+
+    <p>你想到那条辞职短信——我每天做的事是优化算法，让平台从用户身上多赚几块钱，让他恶心，没有任何意义。然后你想到自己当时点头的感觉。你检查了一下：没有恶心。你当时是真的觉得还好。这让你不知道该怎么想这件事。</p>
+
+    <p class="final-line">你拿起了手机。</p>
+  </section>
+
+  <div class="colophon">
+    <span class="colophon-mark">✦</span>
+    <p>金蛀 · Gold Rot · 2026</p>
+  </div>
+
+</article>
+
+<footer>
+  <p><a href="/">← chensquare</a> · Made with AI</p>
+</footer>
+
+</body>
+</html>
